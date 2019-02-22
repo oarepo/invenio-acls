@@ -1,0 +1,43 @@
+{
+    "properties": {
+        "_invenio_acls": {
+            "type": "nested",
+            "properties": {
+                "operation": {
+                    "type": "keyword"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "date"
+                },
+                "actors": {
+                    "type": "nested",
+                    "properties": {
+                        "user": {
+                            "type": "keyword"
+                        },
+                        "group": {
+                            "type": "keyword"
+                        },
+                        "role": {
+                            "type": "keyword"
+                        },
+                        "parameters": {
+                            "type": "nested",
+                            "properties": {
+                                "name": {
+                                    "type": "keyword"
+                                },
+                                "value": {
+                                    "type": "keyword"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

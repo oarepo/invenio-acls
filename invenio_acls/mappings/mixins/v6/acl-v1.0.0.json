@@ -1,0 +1,55 @@
+{
+    "mappings": {
+        "acl-v1.0.0": {
+            "date_detection": false,
+            "numeric_detection": false,
+            "properties": {
+                "default invenio properties": {
+                    "enabled": false
+                },
+                "index": {
+                    "type": "keyword"
+                },
+                "name": {
+                    "type": "text"
+                },
+                "record_selector": {
+                    "type": "percolator"
+                },
+                "acls": {
+                    "type": "nested",
+                    "properties": {
+                        "operation": {
+                            "type": "keyword"
+                        },
+                        "actors": {
+                            "type": "nested",
+                            "properties": {
+                                "user": {
+                                    "type": "keyword"
+                                },
+                                "group": {
+                                    "type": "keyword"
+                                },
+                                "role": {
+                                    "type": "keyword"
+                                },
+                                "parameters": {
+                                    "type": "nested",
+                                    "properties": {
+                                        "name": {
+                                            "type": "keyword"
+                                        },
+                                        "value": {
+                                            "type": "keyword"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
