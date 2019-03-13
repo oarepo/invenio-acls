@@ -7,6 +7,7 @@ import jsonschema
 from elasticsearch import NotFoundError
 from flask import url_for
 from flask_admin.contrib.sqla import ModelView
+from flask_login import current_user
 from flask_wtf import FlaskForm
 from invenio_indexer import current_record_to_index
 from invenio_jsonschemas import current_jsonschemas
@@ -113,7 +114,8 @@ class ACLModelViewMixin(object):
             raise StopValidation(str(e))
 
     def on_model_change(self, form, model, is_created):
-        print("model changed, adding creator", form, model, is_created)
+        print("model changed, adding originator", form, model, is_created)
+        model.originator = current_user
 
 
 class ElasticsearchACLModelView(ACLModelViewMixin, ModelView):
@@ -122,8 +124,8 @@ class ElasticsearchACLModelView(ACLModelViewMixin, ModelView):
     column_formatters = dict(
     )
     column_details_list = (
-        'id', 'name', 'record_selector', 'created', 'updated', 'database_operations', 'priority')
-    column_list = ('id', 'name', 'indices', 'record_selector', 'priority', 'created', 'updated')
+        'id', 'name', 'record_selector', 'created', 'updated', 'originator', 'database_operations', 'priority')
+    column_list = ('id', 'name', 'indices', 'record_selector', 'priority', 'created', 'updated', 'originator')
     column_labels = dict(
         id=_('ACL ID'),
         database_operations=_('Operations')
@@ -175,8 +177,8 @@ class IdACLModelView(ACLModelViewMixin, ModelView):
         record_str=link_record
     )
     column_details_list = (
-        'id', 'name', 'record_str', 'indices', 'created', 'updated', 'database_operations', 'priority')
-    column_list = ('id', 'name', 'record_str', 'priority', 'created', 'updated')
+        'id', 'name', 'record_str', 'indices', 'created', 'updated', 'originator', 'database_operations', 'priority')
+    column_list = ('id', 'name', 'record_str', 'priority', 'created', 'updated', 'originator')
     column_labels = dict(
         id=_('ACL ID'),
         record_str = _('Record')

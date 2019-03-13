@@ -121,12 +121,27 @@ class ACL(object):
 
     indices = db.Column(ARRAY(db.String))
 
+    @declared_attr
+    def originator_id(cls):
+        return db.Column(db.ForeignKey(User.id, ondelete='CASCADE', ),
+                         nullable=False, index=True)
+
+    @declared_attr
+    def originator(cls):
+        return db.relationship(
+            User,
+            backref=db.backref(
+                "authored_acls_%s" % cls.__name__
+            )
+        )
+
     @property
     def handler_name(self):
         """
         returns the name under which the handler is registered in entry points
         """
-        raise NotImplementedError('Implement handler_name property or set up handler instance on this acl: %s' % type(self))
+        raise NotImplementedError(
+            'Implement handler_name property or set up handler instance on this acl: %s' % type(self))
 
 
 __all__ = [

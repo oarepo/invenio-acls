@@ -4,12 +4,16 @@ from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy_utils import Timestamp
 
 from invenio_acls.models_acl import ACL
+from sqlalchemy_continuum import make_versioned
+
+make_versioned()
 
 
 class ElasticsearchACL(ACL, db.Model, Timestamp):
     """Storage for ACL Sets."""
 
     __tablename__ = 'invenio_acls_elasticsearchacl'
+    __versioned__ = {}
 
     #
     # Fields

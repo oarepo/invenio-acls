@@ -2,16 +2,19 @@
 from invenio_db import db
 from invenio_records import Record
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy_continuum import make_versioned
 from sqlalchemy_utils import Timestamp
 
 from invenio_acls.models_acl import ACL
+
+make_versioned()
 
 
 class IdACL(ACL, db.Model, Timestamp):
     """Storage for ACL Sets."""
 
     __tablename__ = 'invenio_acls_idacl'
+    __versioned__ = {}
 
     name = db.Column(
         db.String,
