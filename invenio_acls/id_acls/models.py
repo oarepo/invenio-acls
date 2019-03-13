@@ -1,5 +1,6 @@
 """Models for storing Elasticsearch ACLs."""
 from invenio_db import db
+from invenio_records import Record
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import Timestamp
@@ -21,6 +22,21 @@ class IdACL(ACL, db.Model, Timestamp):
     # Fields
     #
     record_id = db.Column(UUID, nullable=False)
+
+    @property
+    def record_str(self):
+        try:
+            rec = Record.get_record(self.record_id)
+            if 'title' in rec:
+                if '_' in rec['title']:
+                    return '%s: %s' % (self.record_id, rec['title']['_'])
+                else:
+                    return '%s: %s' % (self.record_id, rec['title'])
+            else:
+                return '%s: %s' % (self.record_id, repr(rec))
+        except:
+            pass
+        return str(self)
 
     def __repr__(self):
         """String representation for model."""

@@ -128,6 +128,9 @@ setup(
         'invenio_acls.handlers': [
             'id_acl = invenio_acls.id_acls.handlers:IdAclHandler',
             'elasticsearch_acl = invenio_acls.elasticsearch_acls.handlers:ElasticsearchAclHandler'
+        ],
+        'invenio_db.alembic': [
+            'invenio_acls = invenio_acls:alembic',
         ]
     },
     extras_require=extras_require,

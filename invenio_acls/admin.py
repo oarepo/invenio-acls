@@ -1,9 +1,11 @@
 from __future__ import absolute_import, print_function
 
 import json
+from html import escape
 
 import jsonschema
 from elasticsearch import NotFoundError
+from flask import url_for
 from flask_admin.contrib.sqla import ModelView
 from flask_wtf import FlaskForm
 from invenio_indexer import current_record_to_index
@@ -110,6 +112,9 @@ class ACLModelViewMixin(object):
         except Exception as e:
             raise StopValidation(str(e))
 
+    def on_model_change(self, form, model, is_created):
+        print("model changed, adding creator", form, model, is_created)
+
 
 class ElasticsearchACLModelView(ACLModelViewMixin, ModelView):
     """ModelView for the locations."""
@@ -117,17 +122,17 @@ class ElasticsearchACLModelView(ACLModelViewMixin, ModelView):
     column_formatters = dict(
     )
     column_details_list = (
-        'id', 'name', 'record_selector', 'created', 'updated', 'database_operations')
-    column_list = ('id', 'name', 'indices', 'record_selector', 'created', 'updated')
+        'id', 'name', 'record_selector', 'created', 'updated', 'database_operations', 'priority')
+    column_list = ('id', 'name', 'indices', 'record_selector', 'priority', 'created', 'updated')
     column_labels = dict(
-        id=_('ID'),
+        id=_('ACL ID'),
         database_operations=_('Operations')
     )
     column_filters = ('created', 'updated',)
     column_searchable_list = ('name',)
     column_default_sort = 'name'
     form_base_class = FlaskForm
-    form_columns = ('name', 'indices', 'record_selector', 'database_operations')
+    form_columns = ('name', 'priority', 'indices', 'record_selector', 'database_operations')
     form_args = dict(
     )
     page_size = 25
@@ -153,22 +158,34 @@ class ElasticsearchACLModelView(ACLModelViewMixin, ModelView):
             raise StopValidation(str(e))
 
 
+def link_record(view, context, model, name):
+    recid = model.record_id
+    if recid:
+        href = url_for('recordmetadata.details_view', id=recid)
+        return Markup('<a href="{0}">{1}</a>'.format(
+            href, escape(model.record_str)))
+    else:
+        return model.record_str
+
+
 class IdACLModelView(ACLModelViewMixin, ModelView):
     """ModelView for the locations."""
 
     column_formatters = dict(
+        record_str=link_record
     )
     column_details_list = (
-        'id', 'name', 'record_id', 'indices', 'created', 'updated')
-    column_list = ('id', 'name', 'record_id', 'created', 'updated')
+        'id', 'name', 'record_str', 'indices', 'created', 'updated', 'database_operations', 'priority')
+    column_list = ('id', 'name', 'record_str', 'priority', 'created', 'updated')
     column_labels = dict(
-        id=_('ID'),
+        id=_('ACL ID'),
+        record_str = _('Record')
     )
     column_filters = ('created', 'updated',)
     column_searchable_list = ('name',)
     column_default_sort = 'name'
     form_base_class = FlaskForm
-    form_columns = ('name', 'record_id', 'indices', 'database_operations')
+    form_columns = ('name', 'priority', 'record_id', 'indices', 'database_operations')
     form_args = dict(
     )
     page_size = 25
