@@ -139,13 +139,14 @@ from invenio_acls.id_acls import IdAcl
 from invenio_acls.proxies import current_acls
 
 idacl = IdACL(
+  name="My first ACL",
   priority=0,
+  indices=["theses-thesis-v1.0.0"],
+  record_id = '<uuid>',
   database_operations = [
     {"operation": "get", "actors": {"roles": ["authenticated"]}}
   ],
-  indices=["theses-thesis-v1.0.0"],
   originator = current_user,
-  
 )
 db.session.add(idacl)
 db.session.commit()
