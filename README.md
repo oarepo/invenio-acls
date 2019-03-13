@@ -15,7 +15,7 @@ invenio db init create
 ## Configuration
 
 A supplemental index is required for each acl-enabled model.
-To create it, at first list indices and doctypes and then call `setup-model`
+To create it, at first list indices and doctypes and then call `prepare`
 
 ```bash
 
@@ -24,9 +24,9 @@ $ invenio invenio-acls list-doctypes
 theses-attachment-v1.0.0                 attachment-v1.0.0
 theses-thesis-v1.0.0                     thesis-v1.0.0
 
-# setup-model <index-name>  <doctype-name>
+# prepare <index-name>  <doctype-name>
 
-$ invenio invenio-acls setup-model theses-thesis-v1.0.0 thesis-v1.0.0
+$ invenio invenio-acls prepare theses-thesis-v1.0.0 thesis-v1.0.0
 ```
 
 This will create a new index and

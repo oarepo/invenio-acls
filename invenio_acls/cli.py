@@ -18,7 +18,7 @@ def acls():
 @click.argument('index')
 @click.argument('doctype')
 @cli.with_appcontext
-def setup_model(index, doctype):
+def prepare(index, doctype):
     """
         Setup record index to be used with invenio acls.
 
