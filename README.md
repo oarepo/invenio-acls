@@ -103,14 +103,14 @@ To express that all users in invenio admin role can update resource the operatio
 ## Filtering elasticsearch results on REST api
 
 To filter ES results by effective ACLs, use `ACLRecordsSearch`
-instead of `RecordsSearch`. Also use `check_elasticsearch_acls_*` 
+instead of `RecordsSearch`. Also use `acl_*_permission_factory` 
 to allow "get", "update", "delete" acl-based operations:
 
 ```python
 from invenio_acls import ACLRecordsSearch, \
-                         check_elasticsearch_acls_get, \
-                         check_elasticsearch_acls_update, \ 
-                         check_elasticsearch_acls_delete
+                         acl_read_permission_factory, \
+                         acl_update_permission_factory, \ 
+                         acl_delete_permission_factory
 
 REST_ENDPOINTS = {
 
@@ -122,9 +122,9 @@ REST_ENDPOINTS = {
 
         # ACL based permissions
         create_permission_factory_imp=...,
-        read_permission_factory_imp=check_elasticsearch_acls_get,
-        update_permission_factory_imp=check_elasticsearch_acls_update,
-        delete_permission_factory_imp=check_elasticsearch_acls_delete,
+        read_permission_factory_imp=acl_read_permission_factory,
+        update_permission_factory_imp=acl_update_permission_factory,
+        delete_permission_factory_imp=acl_delete_permission_factory,
         # ...
     ),
 }

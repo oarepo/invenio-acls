@@ -30,6 +30,6 @@ def _check_elasticsearch(operation, record, *args, **kwargs):
     return type(f'CheckES-{operation}', (), {'can': can})()
 
 
-check_elasticsearch_acls_get = partial(_check_elasticsearch, operation='get')
-check_elasticsearch_acls_update = partial(_check_elasticsearch, operation='update')
-check_elasticsearch_acls_delete = partial(_check_elasticsearch, operation='delete')
+acl_read_permission_factory = partial(_check_elasticsearch, operation='get')
+acl_update_permission_factory = partial(_check_elasticsearch, operation='update')
+acl_delete_permission_factory = partial(_check_elasticsearch, operation='delete')
