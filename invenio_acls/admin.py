@@ -1,6 +1,7 @@
 from __future__ import absolute_import, print_function
 
 import json
+import traceback
 from html import escape
 
 import jsonschema
@@ -62,7 +63,10 @@ class ACLModelViewMixin(object):
     can_view_details = True
 
     def after_model_change(self, form, model, is_created):
-        current_acls.index_acl(model)
+        try:
+            current_acls.index_acl(model)
+        except:
+            traceback.print_exc()
 
     def after_model_delete(self, model):
         current_acls.unindex_acl(model)
