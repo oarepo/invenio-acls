@@ -13,4 +13,4 @@ from werkzeug.local import LocalProxy
 
 from invenio_acls.api import AclAPI
 
-acl_api: AclAPI = LocalProxy(lambda: current_app.extensions['invenio-acls'])
+current_acls: AclAPI = LocalProxy(lambda: current_app.extensions['invenio-acls'])

@@ -101,7 +101,8 @@ setup(
             'invenio_acls = invenio_acls.ext:InvenioAcls',
         ],
         'invenio_admin.views': [
-            'aclset_adminview = invenio_acls.admin:aclset_adminview',
+            'elasticsearch_aclset_adminview = invenio_acls.admin:elasticsearch_aclset_adminview',
+            'id_aclset_adminview = invenio_acls.admin:id_aclset_adminview'
         ],
         'invenio_base.blueprints': [
             # 'invenio_acls = invenio_acls.views:blueprint',
@@ -123,6 +124,10 @@ setup(
         ],
         'invenio_celery.tasks': [
             'invenio-acls = invenio_acls.tasks'
+        ],
+        'invenio_acls.handlers': [
+            'id_acl = invenio_acls.id_acls.handlers:IdAclHandler',
+            'elasticsearch_acl = invenio_acls.elasticsearch_acls.handlers:ElasticsearchAclHandler'
         ]
     },
     extras_require=extras_require,

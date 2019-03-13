@@ -5,8 +5,8 @@ import textwrap
 import click
 from flask import cli
 
-from invenio_acls.models import ACL
-from invenio_acls.proxies import acl_api
+from invenio_acls.models_acl import ACL
+from invenio_acls.proxies import current_acls
 
 
 @click.group()
@@ -24,7 +24,7 @@ def setup_model(index, doctype):
 
     :param index:       name of the index in elasticsearch
     """
-    acl_api.setup_model(index_name=index, doc_type=doctype)
+    current_acls.setup_model(index_name=index, doc_type=doctype)
 
 
 @acls.command()
@@ -33,7 +33,7 @@ def list_doctypes():
     """
         List all doctypes and indices registered in elasticsearch
     """
-    for index, doctype in acl_api.list_doctypes():
+    for index, doctype in current_acls.list_doctypes():
         print('%-40s %s' % (index, doctype))
 
 
@@ -59,13 +59,13 @@ def list(index):
 @cli.with_appcontext
 def reindex(acl, index, document):
     if document is not None:
-        resp = acl_api.reindex_document(document, acl)
+        resp = current_acls.reindex_document(document, acl)
     elif acl is not None:
-        resp = acl_api.reindex_acl(acl)
+        resp = current_acls.reindex_acl(acl)
     elif index is not None:
-        resp = acl_api.reindex_index(index)
+        resp = current_acls.reindex_index(index)
     else:
-        resp = acl_api.reindex_all_indices()
+        resp = current_acls.reindex_all_indices()
 
     print("Return status: ")
     for k, v in resp.items():

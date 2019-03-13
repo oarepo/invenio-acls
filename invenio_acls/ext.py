@@ -9,10 +9,10 @@
 
 from __future__ import absolute_import, print_function
 
-from invenio_acls.api import AclAPI
-
 # noinspection PyUnresolvedReferences
 import invenio_acls.signals
+from invenio_acls.acl_handlers import ACLHandlers
+from invenio_acls.api import AclAPI
 
 
 class InvenioAcls(object):
@@ -26,7 +26,7 @@ class InvenioAcls(object):
     def init_app(self, app):
         """Flask application initialization."""
         self.init_config(app)
-        app.extensions['invenio-acls'] = AclAPI(app)
+        app.extensions['invenio-acls'] = AclAPI(app, ACLHandlers())
 
     def init_config(self, app):
         """
@@ -35,3 +35,4 @@ class InvenioAcls(object):
         app.config['INVENIO_ACLS_INDEX_NAME'] = 'invenio_acls-acl-v1.0.0'
         app.config['INVENIO_ACLS_DOCTYPE_NAME'] = 'acl-v1.0.0'
         app.config['INVENIO_ACLS_MIXIN_NAME'] = 'invenio-acl-mixin-v1.0.0'
+        app.config['INVENIO_ACLS_DELAYED_REINDEX'] = False

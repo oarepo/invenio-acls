@@ -7,7 +7,7 @@
                     "type": "keyword"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "keyword"
                 },
                 "timestamp": {
                     "type": "date"

@@ -5,15 +5,35 @@ import json
 import jsonschema
 from elasticsearch import NotFoundError
 from flask_admin.contrib.sqla import ModelView
-from flask_admin.model import InlineFormAdmin
 from flask_wtf import FlaskForm
+from invenio_indexer import current_record_to_index
 from invenio_jsonschemas import current_jsonschemas
+from invenio_records import Record
 from invenio_search import current_search_client
 from markupsafe import Markup
+from wtforms import TextField, StringField, fields
 from wtforms.validators import StopValidation
 
-from invenio_acls.proxies import acl_api
-from .models import ACL, Index
+from invenio_acls.elasticsearch_acls.models import ElasticsearchACL
+from invenio_acls.id_acls.models import IdACL
+from invenio_acls.proxies import current_acls
+
+
+class StringArrayField(fields.StringField):
+
+    def _value(self):
+        if isinstance(self.data, (list, tuple)):
+            return u' '.join(v for v in self.data)
+        elif self.data:
+            return self.data
+        else:
+            return u''
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            self.data = [v.strip() for v in valuelist[0].split(' ') if v.strip()]
+        else:
+            self.data = []
 
 
 def link(text, link_func):
@@ -32,38 +52,17 @@ def _(x):
     return x
 
 
-class ACLModelView(ModelView):
-    """ModelView for the locations."""
-
+class ACLModelViewMixin(object):
     can_create = True
     can_edit = True
     can_delete = True
     can_view_details = True
-    column_formatters = dict(
-    )
-    column_details_list = (
-        'id', 'name', 'record_selector', 'created', 'updated', 'database_operations')
-    column_list = ('id', 'name', 'indices', 'record_selector', 'created', 'updated')
-    column_labels = dict(
-        id=_('ID'),
-        database_operations=_('Operations')
-    )
-    column_filters = ('created', 'updated',)
-    column_searchable_list = ('name', )
-    column_default_sort = 'name'
-    form_base_class = FlaskForm
-    form_columns = ('name', 'indices', 'record_selector', 'database_operations')
-    form_args = dict(
-    )
-    page_size = 25
-    # inline_models = (Index,)
 
     def after_model_change(self, form, model, is_created):
-        acl_api.index_acl(model)
+        current_acls.index_acl(model)
 
     def after_model_delete(self, model):
-        for index in model.indices:
-            acl_api.unindex_acl(index.elasticsearch_index, model.id)
+        current_acls.unindex_acl(model)
 
     def validate_form(self, form):
         if not super().validate_form(form):
@@ -82,20 +81,20 @@ class ACLModelView(ModelView):
 
         return not errors
 
-    def validate_index(self, form, field):
-        index_name = field.data
-        try:
-            current_search_client.search(
-                index=index_name, size=0,
-                body={
-                    'query': {
-                        'match_all': {}
+    def validate_indices(self, form, field):
+        for index_name in field.data:
+            try:
+                current_search_client.search(
+                    index=index_name, size=0,
+                    body={
+                        'query': {
+                            'match_all': {}
+                        }
                     }
-                }
-            )
-        except NotFoundError as e:
-            indices = list(current_search_client.indices.get('*'))
-            raise StopValidation("Index not found. Known indices: " + ', '.join(indices))
+                )
+            except NotFoundError as e:
+                indices = list(current_search_client.indices.get('*'))
+                raise StopValidation("Index not found. Known indices: " + ', '.join(indices))
 
     def validate_database_operations(self, form, field):
         json_data = field.data
@@ -106,20 +105,47 @@ class ACLModelView(ModelView):
             **acl_schema['definitions']['ACLOperations'],
             'definitions': acl_schema['definitions']
         }
-        print(json.dumps(acl_schema, indent=4))
         try:
             jsonschema.validate(json_data, acl_schema)
         except Exception as e:
             raise StopValidation(str(e))
 
+
+class ElasticsearchACLModelView(ACLModelViewMixin, ModelView):
+    """ModelView for the locations."""
+
+    column_formatters = dict(
+    )
+    column_details_list = (
+        'id', 'name', 'record_selector', 'created', 'updated', 'database_operations')
+    column_list = ('id', 'name', 'indices', 'record_selector', 'created', 'updated')
+    column_labels = dict(
+        id=_('ID'),
+        database_operations=_('Operations')
+    )
+    column_filters = ('created', 'updated',)
+    column_searchable_list = ('name',)
+    column_default_sort = 'name'
+    form_base_class = FlaskForm
+    form_columns = ('name', 'indices', 'record_selector', 'database_operations')
+    form_args = dict(
+    )
+    page_size = 25
+    form_extra_fields = {
+        'indices': StringArrayField()
+    }
+
     def validate_record_selector(self, form, field):
         """Checks that the record selector is valid and we can use it to perform query in elasticsearch index"""
         indices = form.indices.data
         record_selector = field.data
+        if not record_selector:
+            raise StopValidation(
+                'Record selector must not be empty. If you want to match all resources, use {"match_all": {}}')
         try:
             for index in indices:
                 current_search_client.search(
-                    index=index.elasticsearch_index, size=0, body={
+                    index=index, size=0, body={
                         'query': record_selector
                     }
                 )
@@ -127,7 +153,56 @@ class ACLModelView(ModelView):
             raise StopValidation(str(e))
 
 
-aclset_adminview = dict(
-    modelview=ACLModelView,
-    model=ACL,
+class IdACLModelView(ACLModelViewMixin, ModelView):
+    """ModelView for the locations."""
+
+    column_formatters = dict(
+    )
+    column_details_list = (
+        'id', 'name', 'record_id', 'indices', 'created', 'updated')
+    column_list = ('id', 'name', 'record_id', 'created', 'updated')
+    column_labels = dict(
+        id=_('ID'),
+    )
+    column_filters = ('created', 'updated',)
+    column_searchable_list = ('name',)
+    column_default_sort = 'name'
+    form_base_class = FlaskForm
+    form_columns = ('name', 'record_id', 'indices', 'database_operations')
+    form_args = dict(
+    )
+    page_size = 25
+    form_extra_fields = {
+        'indices': StringArrayField()
+    }
+
+    def validate_form(self, form):
+        if not super().validate_form(form):
+            return False
+        if hasattr(form, 'indices'):
+            indices = form.indices.data
+            if not indices:
+
+                record_id = form.record_id.data
+                try:
+                    rec = Record.get_record(record_id)
+                except:
+                    form.indices.errors.append('No indices defined and the record with the given does not exist yet')
+                    return False
+
+                form.indices.data = [
+                    current_record_to_index(rec)[0]
+                ]
+
+        return True
+
+
+elasticsearch_aclset_adminview = dict(
+    modelview=ElasticsearchACLModelView,
+    model=ElasticsearchACL,
+    category=_('ACLs'))
+
+id_aclset_adminview = dict(
+    modelview=IdACLModelView,
+    model=IdACL,
     category=_('ACLs'))
