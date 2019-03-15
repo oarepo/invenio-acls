@@ -8,7 +8,7 @@ indices might change any time.
 ## Installation
 
 ```bash
-pip install @oarepo/invenio-acls
+pip install oarepo-invenio-acls
 invenio db init create
 ```
 
