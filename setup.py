@@ -64,7 +64,7 @@ setup_requires = [
 
 install_requires = [
     'Flask-BabelEx>=0.9.3',
-    'invenio-records-rest>=1.1.0,<1.2.0',
+    'invenio-records-rest>=1.1.0',
     'arrow>=0.12.1',
     'SQLAlchemy-Continuum>=1.3.4'
 ]
