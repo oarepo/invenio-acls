@@ -38,15 +38,6 @@ class AclAPI:
                 })
                 operations.add(acl['operation'])
 
-        # if there is no 'GET' permission, add it for everyone
-        if 'get' not in operations:
-            acl_def.append({
-                'operation': 'get',
-                'roles': ['anonymous', 'authenticated'],
-                'id': None,
-                'timestamp': timestamp
-            })
-
         return acl_def
 
     def list_doctypes(self):
@@ -64,14 +55,22 @@ class AclAPI:
         self.handlers.prepare(index_name, doc_type)
 
     def index_acl(self, record_acl: ACL):
-        self.handlers.update(record_acl)
+        try:
+            self.handlers.update(record_acl)
+        except:
+            # TODO: send mail to admin
+            print('Error: could not update ACL index')
         if current_app.config['INVENIO_ACLS_DELAYED_REINDEX']:
             record_acl_changed_reindex.delay(str(record_acl.id))
         else:
             record_acl_changed_reindex(str(record_acl.id))
 
     def unindex_acl(self, record_acl: ACL):
-        self.handlers.delete(record_acl)
+        try:
+            self.handlers.delete(record_acl)
+        except:
+            # TODO: send mail to admin
+            print('Error: could not update ACL index')
         if current_app.config['INVENIO_ACLS_DELAYED_REINDEX']:
             record_acl_deleted_reindex.delay(record_acl.indices, str(record_acl.id))
         else:

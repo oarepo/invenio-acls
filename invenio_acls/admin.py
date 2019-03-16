@@ -18,6 +18,7 @@ from markupsafe import Markup
 from wtforms import TextField, StringField, fields
 from wtforms.validators import StopValidation
 
+from invenio_acls.default_acls import DefaultACL
 from invenio_acls.elasticsearch_acls.models import ElasticsearchACL
 from invenio_acls.id_acls.models import IdACL
 from invenio_acls.proxies import current_acls
@@ -219,6 +220,29 @@ class IdACLModelView(ACLModelViewMixin, ModelView):
 
         return True
 
+class DefaultACLModelView(ACLModelViewMixin, ModelView):
+    """ModelView for the locations."""
+
+    column_formatters = dict(
+        record_str=link_record
+    )
+    column_details_list = (
+        'id', 'name', 'indices', 'created', 'updated', 'originator', 'database_operations', 'priority')
+    column_list = ('id', 'name', 'indices', 'priority', 'created', 'updated', 'originator')
+    column_labels = dict(
+        id=_('ACL ID'),
+    )
+    column_filters = ('created', 'updated',)
+    column_searchable_list = ('name',)
+    column_default_sort = 'name'
+    form_base_class = FlaskForm
+    form_columns = ('name', 'priority', 'indices', 'database_operations')
+    form_args = dict(
+    )
+    page_size = 25
+    form_extra_fields = {
+        'indices': StringArrayField()
+    }
 
 elasticsearch_aclset_adminview = dict(
     modelview=ElasticsearchACLModelView,
@@ -228,4 +252,9 @@ elasticsearch_aclset_adminview = dict(
 id_aclset_adminview = dict(
     modelview=IdACLModelView,
     model=IdACL,
+    category=_('ACLs'))
+
+default_aclset_adminview = dict(
+    modelview=DefaultACLModelView,
+    model=DefaultACL,
     category=_('ACLs'))
