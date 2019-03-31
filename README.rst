@@ -8,22 +8,22 @@
  ACLs for OARepo Invenio
 ============================================================
 
-.. image:: https://img.shields.io/github/license/cis/invenio-acls.svg
-        :target: https://github.com/cis/invenio-acls/blob/master/LICENSE
+.. image:: https://img.shields.io/github/license/cis/invenio-explicit-acls.svg
+        :target: https://github.com/cis/invenio-explicit-acls/blob/master/LICENSE
 
-.. image:: https://img.shields.io/travis/cis/invenio-acls.svg
-        :target: https://travis-ci.org/cis/invenio-acls
+.. image:: https://img.shields.io/travis/cis/invenio-explicit-acls.svg
+        :target: https://travis-ci.org/cis/invenio-explicit-acls
 
-.. image:: https://img.shields.io/coveralls/cis/invenio-acls.svg
-        :target: https://coveralls.io/r/cis/invenio-acls
+.. image:: https://img.shields.io/coveralls/cis/invenio-explicit-acls.svg
+        :target: https://coveralls.io/r/cis/invenio-explicit-acls
 
-.. image:: https://img.shields.io/pypi/v/invenio-acls.svg
-        :target: https://pypi.org/pypi/invenio-acls
+.. image:: https://img.shields.io/pypi/v/invenio-explicit-acls.svg
+        :target: https://pypi.org/pypi/invenio-explicit-acls
 
 A package that adds support for elasticsearch-executed ACLs
 
 Further documentation is available on
-https://invenio-acls.readthedocs.io/
+https://invenio-explicit-acls.readthedocs.io/
 
 ==========================================================
 
@@ -33,7 +33,7 @@ Installation
 
 .. code-block:: bash
 
-    pip install invenio-acls
+    pip install invenio-explicit-acls
 
 Setup
 -----
@@ -42,13 +42,13 @@ For each data model that should be guarded by ACLs, execute the following code i
 
 .. code-block:: bash
 
-    invenio invenio-acls setup-model <elasticsearch_index_name> <doctype_name>
+    invenio invenio-explicit-acls setup-model <elasticsearch_index_name> <doctype_name>
 
 To get a list of all indices & document types, execute:
 
 .. code-block:: bash
 
-    invenio invenio-acls list-doctypes
+    invenio invenio-explicit-acls list-doctypes
 
 Add the index name to a list of acl-enabled indices:
 
@@ -122,32 +122,32 @@ List ACLs
 
 .. code-block:: bash
 
-    invenio invenio-acls list
+    invenio invenio-explicit-acls list
 
 
 Reindex a single ACL
 
 .. code-block:: bash
 
-    invenio invenio-acls reindex --acl=<acl_id>
+    invenio invenio-explicit-acls reindex --acl=<acl_id>
 
 
 Reindex documents in a single ES index
 
 .. code-block:: bash
 
-    invenio invenio-acls reindex --index=<index_name>
+    invenio invenio-explicit-acls reindex --index=<index_name>
 
 
 Reindex all documents
 
 .. code-block:: bash
 
-    invenio invenio-acls reindex
+    invenio invenio-explicit-acls reindex
 
 
 Reindex a single document
 
 .. code-block:: bash
 
-    invenio invenio-acls reindex --document=<document_id>
+    invenio invenio-explicit-acls reindex --document=<document_id>

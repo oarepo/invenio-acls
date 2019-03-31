@@ -17,5 +17,23 @@ include .dockerignore
 include .editorconfig
 include .tx/config
 prune docs/_build
-recursive-include invenio_acls *.po *.pot *.mo *.json
-recursive-include invenio_acls/alembic *.py
+recursive-include invenio_explicit_acls *.po *.pot *.mo *.json
+recursive-include invenio_explicit_acls/alembic *.py
+
+include *.md
+include *.py
+include *.rst
+include *.sh
+include *.test
+include *.yml
+include LICENSE
+include pytest.ini
+
+recursive-include docs *.png
+recursive-include docs *.yml
+recursive-include docs *.py
+recursive-include docs *.rst
+
+exclude .licensevars
+exclude tests
+recursive-exclude tests *

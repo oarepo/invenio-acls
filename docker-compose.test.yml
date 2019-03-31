@@ -1,0 +1,11 @@
+# local docker-compose for tests
+
+version: '3'
+services:
+  travis:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+        - ./:/invenio-explicit-acls
+

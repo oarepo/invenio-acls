@@ -1,0 +1,162 @@
+import json
+
+import elasticsearch
+import pytest
+from flask import current_app
+from invenio_indexer.api import RecordIndexer
+from invenio_search import current_search_client
+
+from helpers import create_record
+from invenio_explicit_acls.acls import ElasticsearchACL
+from invenio_explicit_acls.record import SchemaEnforcingRecord
+from invenio_explicit_acls.utils import schema_to_index
+
+RECORD_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
+ANOTHER_SCHEMA = 'http://localhost/schemas/records/blah-v1.0.0.json'
+
+
+def test_elasticsearch_acl_get_record_acl(app, db, es, es_acl_prepare, test_users):
+    pid, record = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['blah']}, clz=SchemaEnforcingRecord)
+    pid1, record1 = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['test']}, clz=SchemaEnforcingRecord)
+
+    with db.session.begin_nested():
+        acl = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
+                               priority=0, operation='get', originator=test_users.u1,
+                               record_selector={'term': {
+                                   'keywords': 'blah'
+                               }})
+        db.session.add(acl)
+        acl2 = ElasticsearchACL(name='test 2', schemas=[ANOTHER_SCHEMA],
+                                priority=0, operation='get', originator=test_users.u1,
+                                record_selector={'term': {
+                                    'keywords': 'test'
+                                }})
+        db.session.add(acl2)
+
+    acl.update()
+    with pytest.raises(AttributeError,
+                       match='No index found for schema http://localhost/schemas/records/blah-v1.0.0.json. '
+                             'The parameter must be an url ending with something similar '
+                             'to records/record-v1.0.0.json'):
+        acl2.update()
+
+    acls = list(ElasticsearchACL.get_record_acls(record))
+    assert len(acls) == 1
+    assert isinstance(acls[0], ElasticsearchACL)
+    assert acls[0].id == acl.id
+
+
+def test_elasticsearch_acl_prepare_schema_acl(app, db, es, es_acl_prepare, test_users):
+    # should pass as it does nothing
+    ElasticsearchACL.prepare_schema_acls(RECORD_SCHEMA)
+
+    idx = ElasticsearchACL.get_acl_index_name(schema_to_index(RECORD_SCHEMA)[0])
+    mapping = current_search_client.indices.get_mapping(idx)
+    assert idx in mapping
+
+    idx, doc_type = schema_to_index(RECORD_SCHEMA)
+    mapping = current_search_client.indices.get_mapping(idx)
+    assert '_invenio_explicit_acls' in mapping[idx]['mappings'][doc_type]['properties']
+
+
+def test_elasticsearch_acl_get_matching_resources(app, db, es, es_acl_prepare, test_users):
+    pid, record = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['blah']}, clz=SchemaEnforcingRecord)
+    pid1, record1 = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['test']}, clz=SchemaEnforcingRecord)
+    RecordIndexer().index(record)
+    RecordIndexer().index(record1)
+    current_search_client.indices.flush()
+
+    with db.session.begin_nested():
+        acl = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
+                               priority=0, operation='get', originator=test_users.u1,
+                               record_selector={'term': {
+                                   'keywords': 'blah'
+                               }})
+        db.session.add(acl)
+
+        acl1 = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
+                                priority=0, operation='get', originator=test_users.u1,
+                                record_selector={'term': {
+                                    'keywords': 'test'
+                                }})
+        db.session.add(acl1)
+
+    ids = list(acl.get_matching_resources())
+    assert len(ids) == 1
+    assert ids[0] == str(pid.object_uuid)
+
+    ids = list(acl1.get_matching_resources())
+    assert len(ids) == 1
+    assert ids[0] == str(pid1.object_uuid)
+
+
+def test_elasticsearch_acl_update(app, db, es, es_acl_prepare, test_users):
+    # should pass as it does nothing
+    with db.session.begin_nested():
+        acl = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
+                               priority=0, operation='get', originator=test_users.u1,
+                               record_selector={'term': {
+                                   'keywords': 'test'
+                               }})
+        db.session.add(acl)
+    acl.update()  # makes version 1
+    acl.update()  # makes version 2
+    idx = acl.get_acl_index_name(schema_to_index(RECORD_SCHEMA)[0])
+    acl_md = current_search_client.get(
+        index=idx,
+        doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
+        id=acl.id
+    )
+    assert acl_md == {
+        '_id': acl.id,
+        '_index': 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0',
+        '_source': {'__acl_record_selector': {'term': {'keywords': 'test'}}},
+        '_type': '_doc',
+        '_version': 2,
+        'found': True
+    }
+
+
+def test_elasticsearch_acl_delete(app, db, es, es_acl_prepare, test_users):
+    # should pass as it does nothing
+    with db.session.begin_nested():
+        acl = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
+                               priority=0, operation='get', originator=test_users.u1,
+                               record_selector={'term': {
+                                   'keywords': 'test'
+                               }})
+        db.session.add(acl)
+    acl.update()
+    idx = acl.get_acl_index_name(schema_to_index(RECORD_SCHEMA)[0])
+    acl_md = current_search_client.get(
+        index=idx,
+        doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
+        id=acl.id
+    )
+    assert acl_md == {
+        '_id': acl.id,
+        '_index': 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0',
+        '_source': {'__acl_record_selector': {'term': {'keywords': 'test'}}},
+        '_type': '_doc',
+        '_version': 1,
+        'found': True
+    }
+    acl.delete()
+    with pytest.raises(elasticsearch.exceptions.NotFoundError):
+        current_search_client.get(
+            index=idx,
+            doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
+            id=acl.id
+        )
+
+
+def test_elasticsearch_acl_repr(app, db, es, es_acl_prepare, test_users):
+    # should pass as it does nothing
+    with db.session.begin_nested():
+        acl = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
+                               priority=0, operation='get', originator=test_users.u1,
+                               record_selector={'term': {
+                                   'keywords': 'test'
+                               }})
+        db.session.add(acl)
+    assert repr(acl) == "\"test\" (%s) on schemas ['http://localhost/schemas/records/record-v1.0.0.json']" % acl.id

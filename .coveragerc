@@ -1,0 +1,4 @@
+[run]
+omit =
+    invenio_explicit_acls/alembic/*
+    invenio_explicit_acls/admin.py

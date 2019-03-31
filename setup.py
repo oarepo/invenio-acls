@@ -1,9 +1,27 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2019 CIS UCT Prague.
+# Copyright (c) 2019 UCT Prague.
+# 
+# setup.py is part of Invenio Explicit ACLs 
+# (see https://github.com/oarepo/invenio-explicit-acls).
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 #
-# CIS theses repository is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
 
 """Data model for CIS theses repository"""
 
@@ -30,27 +48,29 @@ invenio_db_version = '1.0.1'
 extras_require = {
     'docs': [
         'Sphinx>=1.5.1',
+        'sphinxcontrib-httpdomain>=1.7.0'
     ],
-    # Elasticsearch version
     'elasticsearch5': [
         'invenio-search[elasticsearch5]>={}'.format(invenio_search_version),
     ],
     'elasticsearch6': [
         'invenio-search[elasticsearch6]>={}'.format(invenio_search_version),
     ],
-    # Databases
     'mysql': [
         'invenio-db[mysql]>={}'.format(invenio_db_version),
     ],
     'postgresql': [
         'invenio-db[postgresql]>={}'.format(invenio_db_version),
     ],
+    'sqlite': [
+        'invenio-db>={}'.format(invenio_db_version),
+    ],
     'tests': tests_require,
+    'all': [
+        'pyld>=1.0.4',
+    ]
 }
 
-extras_require['all'] = [
-    'pyld'
-]
 for name, reqs in extras_require.items():
     if name[0] == ':' or name in ('elasticsearch5', 'elasticsearch6', 'mysql',
                                   'postgresql'):
@@ -64,7 +84,10 @@ setup_requires = [
 
 install_requires = [
     'Flask-BabelEx>=0.9.3',
-    'invenio-records-rest>=1.1.0',
+    'invenio-records-rest>=1.3.1',
+    'invenio-accounts>=1.1.1',
+    'invenio-access>=1.1.0',
+    'invenio-jsonschemas>=1.0.0',
     'arrow>=0.12.1',
     'SQLAlchemy-Continuum>=1.3.4'
 ]
@@ -73,67 +96,55 @@ packages = find_packages()
 
 # Get the version string. Cannot be done with import!
 g = {}
-with open(os.path.join('invenio_acls', 'version.py'), 'rt') as fp:
+with open(os.path.join('invenio_explicit_acls', 'version.py'), 'rt') as fp:
     exec(fp.read(), g)
     version = g['__version__']
 
 setup(
-    name='invenio-acls',
+    name='invenio-explicit-acls',
     version=version,
     description=__doc__,
     long_description=readme,
-    keywords='invenio-acls Invenio',
+    keywords='invenio-explicit-acls Invenio declarative ACL',
     license='MIT',
     author='CIS UCT Prague',
     author_email='simeki@vscht.cz',
-    url='https://github.com/cis/invenio-acls',
+    url='https://github.com/oarepo/invenio-explicit-acls',
     packages=packages,
     zip_safe=False,
     include_package_data=True,
     platforms='any',
     entry_points={
         'invenio_db.models': [
-            'invenio_acls = invenio_acls.models'
+            'invenio_explicit_acls = invenio_explicit_acls.models',
+            'invenio_explicit_acls_actors = invenio_explicit_acls.actors',
+            'invenio_explicit_acls_acls = invenio_explicit_acls.acls',
         ],
         'invenio_base.apps': [
-            'invenio_acls = invenio_acls.ext:InvenioAcls',
+            'invenio_explicit_acls = invenio_explicit_acls.ext:InvenioExplicitAcls',
         ],
         'invenio_base.api_apps': [
-            'invenio_acls = invenio_acls.ext:InvenioAcls',
+            'invenio_explicit_acls = invenio_explicit_acls.ext:InvenioExplicitAcls',
         ],
         'invenio_admin.views': [
-            'elasticsearch_aclset_adminview = invenio_acls.admin:elasticsearch_aclset_adminview',
-            'id_aclset_adminview = invenio_acls.admin:id_aclset_adminview',
-            'default_aclset_adminview = invenio_acls.admin:default_aclset_adminview',
-        ],
-        'invenio_base.blueprints': [
-            # 'invenio_acls = invenio_acls.views:blueprint',
+            'elasticsearch_aclset_adminview = invenio_explicit_acls.admin:elasticsearch_aclset_adminview',
+            'id_aclset_adminview = invenio_explicit_acls.admin:id_aclset_adminview',
+            'default_aclset_adminview = invenio_explicit_acls.admin:default_aclset_adminview',
+            'useractor_aclset_adminview = invenio_explicit_acls.admin:useractor_aclset_adminview',
+            'roleactor_aclset_adminview = invenio_explicit_acls.admin:roleactor_aclset_adminview',
+            'systemroleactor_aclset_adminview = invenio_explicit_acls.admin:systemroleactor_aclset_adminview',
         ],
         'invenio_jsonschemas.schemas': [
-            'invenio_acls = invenio_acls.jsonschemas'
-        ],
-        # 'invenio_search.mappings': [
-        #     'invenio_acls = invenio_acls.mappings'
-        # ],
-        'invenio_pidstore.minters': [
-            # 'thesis = invenio_acls.minters:thesis_minter',
-        ],
-        'invenio_pidstore.fetchers': [
-            # 'thesis = invenio_acls.fetchers:thesis_fetcher',
+            'invenio_explicit_acls = invenio_explicit_acls.jsonschemas'
         ],
         'flask.commands': [
-            'invenio-acls = invenio_acls.cli:acls'
+            'invenio_explicit_acls = invenio_explicit_acls.cli:explicit_acls'
         ],
         'invenio_celery.tasks': [
-            'invenio-acls = invenio_acls.tasks'
-        ],
-        'invenio_acls.handlers': [
-            'id_acl = invenio_acls.id_acls.handlers:IdAclHandler',
-            'elasticsearch_acl = invenio_acls.elasticsearch_acls.handlers:ElasticsearchAclHandler',
-            'default_acl = invenio_acls.default_acls.handlers:DefaultAclHandler'
+            'invenio_explicit_acls = invenio_explicit_acls.tasks'
         ],
         'invenio_db.alembic': [
-            'invenio_acls = invenio_acls:alembic',
+            'invenio_explicit_acls = invenio_explicit_acls:alembic',
         ]
     },
     extras_require=extras_require,
