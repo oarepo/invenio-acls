@@ -28,5 +28,4 @@
 from flask import current_app
 from werkzeug.local import LocalProxy
 
-
 current_explicit_acls = LocalProxy(lambda: current_app.extensions['invenio-explicit-acls'])     # type: invenio_explicit_acls.api.AclAPI

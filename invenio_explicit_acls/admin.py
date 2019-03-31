@@ -40,7 +40,7 @@ from wtforms.validators import StopValidation
 
 from invenio_explicit_acls.acls import ElasticsearchACL, IdACL
 from invenio_explicit_acls.acls.default_acls import DefaultACL
-from invenio_explicit_acls.actors import SystemRoleActor, RoleActor, UserActor
+from invenio_explicit_acls.actors import RoleActor, SystemRoleActor, UserActor
 from invenio_explicit_acls.proxies import current_explicit_acls
 
 

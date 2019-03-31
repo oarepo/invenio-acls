@@ -36,7 +36,8 @@ from invenio_records import Record
 from invenio_search import current_search_client
 from werkzeug.utils import cached_property
 
-from invenio_explicit_acls.tasks import acl_changed_reindex, acl_deleted_reindex
+from invenio_explicit_acls.tasks import acl_changed_reindex, \
+    acl_deleted_reindex
 from invenio_explicit_acls.utils import schema_to_index
 
 from .models import ACL, Actor
@@ -141,9 +142,7 @@ class AclAPI:
 
     @property
     def acl_doctype_name(self):
-        """
-        Return doctype of index in which percolate ACL queries are stored.
-        """
+        """Return doctype of index in which percolate ACL queries are stored."""
         return self.app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']
 
     def serialize_record_acls(self, record_acls: Iterable[ACL]):
@@ -175,7 +174,7 @@ class AclAPI:
 
     def reindex_acl(self, acl: ACL, delayed=True):
         """
-        Reindex resources when ACL is changed
+        Reindex resources when ACL is changed.
 
         :param acl:         the ACL that has been created/changed
         :param delayed:     if True and INVENIO_EXPLICIT_ACLS_DELAYED_REINDEX is True as well,
@@ -192,6 +191,13 @@ class AclAPI:
             acl_changed_reindex(str(acl.id))
 
     def reindex_acl_removed(self, acl: ACL, delayed=True):
+        """
+        Reindex resources when ACL is removed.
+
+        :param acl:             the removed ACL (must not be present in database)
+        :param delayed:         if True and INVENIO_EXPLICIT_ACLS_DELAYED_REINDEX is True as well,
+                                reindex in a background task in celery, otherwise reindex before the call returns
+        """
         try:
             acl.delete()
         except:  # pragma no cover

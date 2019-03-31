@@ -24,8 +24,8 @@
 #
 """Built-in actors definition."""
 
-from .system_role import SystemRoleActor
 from .role import RoleActor
+from .system_role import SystemRoleActor
 from .user import UserActor
 
 __all__ = ('SystemRoleActor', 'RoleActor', 'UserActor')

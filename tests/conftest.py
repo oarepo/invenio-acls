@@ -1,6 +1,26 @@
-# -*- coding: utf-8 -*-
 #
-# Copied from https://github.com/inveniosoftware/invenio-records-rest/blob/master/tests/conftest.py
+# Copyright (c) 2019 UCT Prague.
+# 
+# conftest.py is part of Invenio Explicit ACLs 
+# (see https://github.com/oarepo/invenio-explicit-acls).
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 #
 
 """Pytest configuration."""
@@ -16,11 +36,11 @@ from collections import namedtuple
 
 import pytest
 from elasticsearch.exceptions import RequestError
-from flask import Flask, url_for, make_response
-from flask_login import LoginManager, login_user, current_user
+from flask import Flask, make_response, url_for
+from flask_login import LoginManager, current_user, login_user
 from flask_principal import Principal
 from invenio_access import InvenioAccess
-from invenio_accounts.models import User, Role
+from invenio_accounts.models import Role, User
 from invenio_db import InvenioDB
 from invenio_db import db as db_
 from invenio_indexer import InvenioIndexer
@@ -31,8 +51,7 @@ from invenio_records_rest import InvenioRecordsREST
 from invenio_records_rest.utils import PIDConverter
 from invenio_records_rest.views import create_blueprint_from_app
 from invenio_rest import InvenioREST
-from invenio_search import InvenioSearch, current_search, \
-    current_search_client
+from invenio_search import InvenioSearch, current_search, current_search_client
 from sqlalchemy_utils.functions import create_database, database_exists
 
 from invenio_explicit_acls.acl_records_search import ACLRecordsSearch
@@ -72,7 +91,6 @@ def search_url():
 
 def user_id_1_perm(record, *args, **kwargs):
     """Allow user with id 1."""
-
     def can(self):
         """Try to search for given record."""
         return current_user.is_authenticated and current_user.id == 1
@@ -216,7 +234,6 @@ def db(app):
 @pytest.yield_fixture()
 def es(app):
     """Elasticsearch fixture."""
-
     # remove all indices and data to get to a well-defined state
     for idx in current_search_client.indices.get('*'):
         try:
@@ -236,6 +253,7 @@ def es(app):
 
 @pytest.yield_fixture()
 def es_acl_prepare(app, es, db):
+    """Prepares ACL index for records/record."""
     from invenio_explicit_acls.proxies import current_explicit_acls
     current_explicit_acls.prepare('records/record-v1.0.0.json')
     yield current_explicit_acls
@@ -246,6 +264,7 @@ TestUsers = namedtuple('TestUsers', ['u1', 'u2', 'u3', 'r1', 'r2'], verbose=Fals
 
 @pytest.fixture()
 def test_users(app, db):
+    """Returns named tuple (u1, u2, u3, r1, r2)."""
     with db.session.begin_nested():
         r1 = Role(name='role1')
         r2 = Role(name='role2')

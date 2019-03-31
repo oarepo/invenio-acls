@@ -27,11 +27,11 @@ import datetime
 import logging
 
 import elasticsearch
-from sqlalchemy.orm.exc import NoResultFound
 from celery import shared_task
 from invenio_indexer.api import RecordIndexer
 from invenio_records import Record
 from invenio_search import current_search_client
+from sqlalchemy.orm.exc import NoResultFound
 
 from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.proxies import current_explicit_acls

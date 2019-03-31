@@ -25,7 +25,7 @@
 """Defines serializer mixin that for each record returns cached ACLs in 'invenio_explicit_acls' property."""
 import logging
 
-from flask import current_app, request, has_request_context
+from flask import current_app, has_request_context, request
 from invenio_records_rest.serializers import JSONSerializer
 from invenio_records_rest.serializers.base import PreprocessorMixin
 from invenio_records_rest.utils import obj_or_import_string
@@ -53,6 +53,7 @@ class ACLSerializerMixin(PreprocessorMixin):
     """
 
     def __init__(self, *args, **kwargs):
+        """Creates an instance."""
         self.acl_rest_endpoint = kwargs.pop('acl_rest_endpoint', type(self).acl_rest_endpoint)
         super().__init__(*args, **kwargs)
 

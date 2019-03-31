@@ -1,13 +1,26 @@
-# -*- coding: utf-8 -*-
 #
-# This file is part of Invenio.
-# Copyright (C) 2015-2018 CERN.
-#
-# Invenio is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
-# this file was taken from https://github.com/inveniosoftware/invenio-records-rest/blob/master/tests/helpers.py
-#
+# Copyright (c) 2019 UCT Prague.
+# 
+# helpers.py is part of Invenio Explicit ACLs 
+# (see https://github.com/oarepo/invenio-explicit-acls).
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 #
 
 """Helper methods for tests."""
@@ -52,6 +65,7 @@ def assert_hits_len(res, hit_length):
 
 def parse_url(url):
     """Build a comparable dict from the given url.
+
     The resulting dict can be comparend even when url's query parameters
     are in a different order.
     """
@@ -66,6 +80,7 @@ def parse_url(url):
 
 def to_relative_url(url):
     """Build relative URL from external URL.
+
     This is needed because the test client discards query parameters on
     external urls.
     """
@@ -87,7 +102,7 @@ def record_url(pid):
 
 
 def records_url():
-    """Get URL to record collection"""
+    """Get URL to record collection."""
     return url_for('invenio_records_rest.recid_list')
 
 
@@ -97,16 +112,19 @@ def _mock_validate_fail(self):
 
 
 def get_from_es(pid, schema='records/record-v1.0.0.json'):
+    """Retrieves a record from elasticsearch."""
     index, doctype = schema_to_index(schema)
     return current_search_client.get(index=index, doc_type=doctype, id=pid.object_uuid)
 
 
 def login(http_client, user):
+    """Calls test login endpoint to log user."""
     resp = http_client.get(f'/test/login/{user.id}')
     assert resp.status_code == 200
 
 
 def clear_timestamp(x):
+    """Replaces (recursively) values of all keys named 'timestamp'."""
     if isinstance(x, dict):
         if 'timestamp' in x:
             x['timestamp'] = 'cleared'
@@ -119,6 +137,7 @@ def clear_timestamp(x):
 
 
 def set_identity(app, u):
+    """Sets identity in flask.g to the user."""
     identity = Identity(u.id)
     identity.provides.add(authenticated_user)
     identity_changed.send(app, identity=identity)

@@ -23,33 +23,33 @@
 # SOFTWARE.
 #
 """Marshmallow mixin that returns cached ACLs on Record."""
-from marshmallow import fields, validates, ValidationError, post_load
+from marshmallow import ValidationError, fields, post_load, validates
 
 
 class SchemaEnforcingMixin(object):
+    """A marshmallow mixin that enforces that record has only one of predefined schemas."""
+
     ALLOWED_SCHEMAS = ('http://localhost/schemas/records/record-v1.0.0.json',)
+    """A list of allowed schemas."""
+
     PREFERRED_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
+    """If a schema is not set, add this schema."""
 
     schema = fields.String(attribute='$schema', load_from='$schema', dump_to='$schema', required=False)
 
     @validates('schema')
     def validate_schema(self, value):
-        print('validate_schema called')
+        """Checks that schema (if provided) is in the list of allowed schemas."""
         if value:
             if value not in self.ALLOWED_SCHEMAS:
                 raise ValidationError('Schema %s not in allowed schemas %s' % (value, self.ALLOWED_SCHEMAS))
 
     @post_load
     def add_schema(self, data):
-        print('add schema called', data.get('$schema'), data)
+        """If schema has not been provided, sets the PREFERRED_SCHEMA."""
         if '$schema' not in data:
             data['$schema'] = self.PREFERRED_SCHEMA
-        print('returning', data)
         return data
-
-    def load(self, *args, **kwargs):
-        print(args, kwargs)
-        return super().load(*args, **kwargs)
 
 
 class ACLRecordSchemaMixinV1(object):

@@ -27,7 +27,13 @@ from invenio_records import Record
 
 
 class SchemaKeepingRecordMixin(object):
-    """A mixin for Record class that makes sure $schema is always in allowed schemas."""
+    """
+    A mixin for Record class that makes sure $schema is always in allowed schemas.
+
+    Note that this mixin is not enough, always use invenio_explicit_acls.marshmallow.SchemaEnforcingMixin
+    as well. The reason is that Invenio does not inject custom Record implementation for PUT, PATCH and DELETE
+    operations.
+    """
 
     # DO NOT forget to set these up in subclasses
     ALLOWED_SCHEMAS = ()
@@ -69,5 +75,7 @@ class SchemaKeepingRecordMixin(object):
 
 
 class SchemaEnforcingRecord(SchemaKeepingRecordMixin, Record):
+    """Sample implementation of Record for the cookiecutter records datamodel."""
+
     ALLOWED_SCHEMAS = ('http://localhost/schemas/records/record-v1.0.0.json',)
     PREFERRED_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'

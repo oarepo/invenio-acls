@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2019 UCT Prague.
 # 
-# permissions.py is part of Invenio Explicit ACLs
+# permissions.py is part of Invenio Explicit ACLs 
 # (see https://github.com/oarepo/invenio-explicit-acls).
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy

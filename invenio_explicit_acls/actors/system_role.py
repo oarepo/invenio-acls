@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2019 UCT Prague.
 # 
-# user.py is part of Invenio Explicit ACLs 
+# system_role.py is part of Invenio Explicit ACLs 
 # (see https://github.com/oarepo/invenio-explicit-acls).
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,8 +23,8 @@
 # SOFTWARE.
 #
 """A modul that defines anonymous actor."""
-from typing import Iterable
 import logging
+from typing import Iterable
 
 from elasticsearch_dsl import Q
 from flask import g
@@ -95,7 +95,6 @@ class SystemRoleActor(Actor):
         :param user:  the user to be checked
         :return:      elasticsearch query that enforces the user
         """
-
         if user.is_anonymous:
             return Q('term', _invenio_explicit_acls__system_role='any_user')
         if not hasattr(g, 'identity'):  # pragma: no cover
@@ -139,9 +138,9 @@ class SystemRoleActor(Actor):
 
         :return: Iterable of a user ids
         """
-
         if self.system_role == 'any_user' or self.system_role == 'authenticated_user':
             for u in User.query.all():
                 yield u.id
         else:
-            raise NotImplementedError('Can not get a list of matching users for system role %s - not implemented' % self.system_role)
+            raise NotImplementedError(
+                'Can not get a list of matching users for system role %s - not implemented' % self.system_role)

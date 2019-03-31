@@ -2,7 +2,7 @@
 ##
 ## Copyright (c) 2019 UCT Prague.
 ## 
-## run-tests.sh is part of Invenio Explicit ACLs 
+## prepare-test-docker.sh is part of Invenio Explicit ACLs 
 ## (see https://github.com/oarepo/invenio-explicit-acls).
 ## 
 ## Permission is hereby granted, free of charge, to any person obtaining a copy

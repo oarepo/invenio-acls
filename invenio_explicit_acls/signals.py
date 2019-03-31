@@ -31,7 +31,6 @@ from invenio_explicit_acls.utils import schema_to_index
 
 def add_acls(app, json=None, index=None, record=None, doc_type=None, **kwargs):
     """Signal handler that adds cached ACLs for all records that are ACL enabled."""
-
     # prevent injection of explicit acls even in case of a schema that
     # is not enabled and when marshmallow is circumvented
     if '_invenio_explicit_acls' in json:
