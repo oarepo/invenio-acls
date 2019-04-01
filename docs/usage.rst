@@ -37,19 +37,23 @@ are extensible and custom implementation can be provided by extending from these
 Mappings
 ========
 
+Mapping define a set of records to which a given operation and ACLs are applied.
 Every mapping contains the following required properties:
 
     name:
-        the name of the ACL
+        the name of the ACL, only for humans
 
     priority:
-        the priority of the ACL rule
+        the priority of the ACL rule, for its meaning see the principles above
 
     operation:
-        an abstract operation the ACL describes, for example "get" or "update"
+        an abstract operation the ACL describes, for example "get", "update"
+        "delete" for standard REST operations. Can be any string for custom
+        operations (such as "approve", "publish", ...).
 
     schemas:
-        a set of records identified by json schema URLs to which ACL applies
+        set it to a list of schemas to which the ACL is applied.
+        Records having other schemas are not affected by the ACL.
 
 The following implementations of mappings are built-in:
 
@@ -57,15 +61,20 @@ The following implementations of mappings are built-in:
         the ACL applies to records identified by their internal Invenio UUIDs
 
     DefaultACL:
-        the ACL applies to all records in given schemas
+        the ACL applies to all records in given schema(s)
 
     ElasticsearchACL:
-        the ACL applies to all records that match the given ES query
+        the ACL applies to all records in the given schema(s) that match the given ES query
+
+    PropertyValueACL:
+        simpler implementation of ElasticsearchACL.
+        The ACL applies to all records in the given schema(s) whose named property has a given value
 
 
 Actors
 ======
 
+Actor defines who has access to a set of resources identified by mapping above.
 The following implementations are built-in:
 
     UserActor:

@@ -25,6 +25,7 @@
 """Signal called to add cached ACLs to ES data."""
 from invenio_indexer.signals import before_record_index
 
+from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.proxies import current_explicit_acls
 from invenio_explicit_acls.utils import schema_to_index
 
@@ -40,7 +41,7 @@ def add_acls(app, json=None, index=None, record=None, doc_type=None, **kwargs):
     if not schema:
         return      # pragma no cover
 
-    if schema not in app.config.get('INVENIO_EXPLICIT_ACL_ENABLED_SCHEMAS', []):
+    if schema not in current_explicit_acls.enabled_schemas:
         return      # pragma no cover
 
     matching_acls = current_explicit_acls.get_record_acls(record)

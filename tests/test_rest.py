@@ -140,7 +140,8 @@ def test_create_acl_after_record(app, db, es, es_acl_prepare, test_users):
             id=str(PersistentIdentifier.get('recid', rest_metadata['control_number']).object_uuid)
         )
 
-        assert rec_md['_source']['_invenio_explicit_acls'] == []
+        # there is no ACL in the database => no acls are defined nor enforced on the record
+        assert '_invenio_explicit_acls' not in rec_md['_source']
 
 
 @pytest.mark.parametrize('app', [dict(

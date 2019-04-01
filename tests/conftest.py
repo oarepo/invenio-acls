@@ -146,9 +146,6 @@ def app(request, search_class):
         ),
         SQLALCHEMY_TRACK_MODIFICATIONS=True,
         TESTING=True,
-        INVENIO_EXPLICIT_ACL_ENABLED_SCHEMAS=[
-            'http://localhost/schemas/records/record-v1.0.0.json'
-        ]
     )
     app.config['RECORDS_REST_ENDPOINTS']['recid']['search_class'] = \
         search_class

@@ -74,20 +74,11 @@ type:
 3. If not using marshmallow, adapt your loader to check and fill the `$schema` property.
    Never trust user (or your code) and always check!
 
-4. Enable `invenio-explicit-acls` for the schemas defined in step 1:
-
-.. code-block:: python
-
-    # myapp/config.py
-    INVENIO_EXPLICIT_ACL_ENABLED_SCHEMAS = [
-        *ACL_ALLOWED_SCHEMAS
-    ]
-
-5. For each of the schemas defined in step 1, create additional indices in ES:
+4. For each of the schemas defined in step 1, create additional indices in ES:
 
 .. code-block:: bash
 
     # run in bash
     invenio explicit-acls prepare <schema-url>
 
-6. Restart the server and you are ready to go.
+5. Restart the server and you are ready to go.

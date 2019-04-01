@@ -36,6 +36,8 @@ from invenio_accounts.models import User
 from invenio_db import db
 from invenio_records import Record
 from invenio_search import current_search_client
+from sqlalchemy import func
+from sqlalchemy.util import classproperty
 from sqlalchemy_utils import Timestamp
 
 from invenio_explicit_acls.utils import schema_to_index
@@ -151,6 +153,20 @@ class ACL(db.Model, Timestamp):
     def delete(self):
         """If the ACL writes itself to any other representation (such as ES index), delete it from there."""
         raise NotImplementedError('Must be implemented')
+
+    @classmethod
+    def enabled_schemas(clz) -> Iterable[str]:
+        """Returns all schemas that have at least one ACL defined on them"""
+        if db.engine.dialect.name == 'postgresql':
+            # postgresql has array field, so return it from the array
+            return ACL.query(func.unnest(ACL.shemas)).distinct().all()
+
+        # otherwise iterate all the ACLs, let's hope there is not too many of them
+        schemas = set()
+        for acl in ACL.query.all():
+            for schema in acl.schemas:
+                schemas.add(schema)
+        return schemas
 
     def used_in_records(self, older_than_timestamp=None):
         """

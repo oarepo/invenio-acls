@@ -145,6 +145,10 @@ class AclAPI:
         """Return doctype of index in which percolate ACL queries are stored."""
         return self.app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']
 
+    @property
+    def enabled_schemas(self):
+        return ACL.enabled_schemas()
+
     def serialize_record_acls(self, record_acls: Iterable[ACL]):
         """
         Serializes a set of record ACLs to json form that will be attached to a record.

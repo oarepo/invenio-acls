@@ -32,6 +32,8 @@ from invenio_pidstore.models import PersistentIdentifier
 from invenio_records_rest.utils import allow_all
 from invenio_search import current_search_client
 
+from invenio_explicit_acls.acls import DefaultACL
+from invenio_explicit_acls.actors import UserActor
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 
 RECORD_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
@@ -100,7 +102,16 @@ def test_create_record_without_enabled_acl(app, db, es):
         assert 'control_number' in get_json(response)['metadata']
 
 
-def test_get_record_no_acls_anonymous(app, db, es, es_acl_prepare):
+def test_get_record_no_acls_anonymous(app, db, es, es_acl_prepare, test_users):
+
+    with db.session.begin_nested():
+        # create an empty ACL in order to get the _invenio_explicit_acls filled
+        acl = DefaultACL(name='test', schemas=[RECORD_SCHEMA],
+                     priority=0, operation='get', originator=test_users.u1)
+        db.session.add(acl)
+        actor = UserActor(name='test', acl=acl, users=[], originator=test_users.u1)
+        db.session.add(actor)
+
     pid, record = create_record({}, clz=SchemaEnforcingRecord)
     RecordIndexer().index(record)
 
@@ -144,6 +155,15 @@ def test_create_record_no_acls_anonymous(app, db, es, es_acl_prepare):
 
 def test_create_record_no_acls_authenticated(app, db, es, es_acl_prepare, test_users):
     with app.test_client() as client:
+
+        with db.session.begin_nested():
+            # create an empty ACL in order to get the _invenio_explicit_acls filled
+            acl = DefaultACL(name='test', schemas=[RECORD_SCHEMA],
+                         priority=0, operation='get', originator=test_users.u1)
+            db.session.add(acl)
+            actor = UserActor(name='test', acl=acl, users=[], originator=test_users.u1)
+            db.session.add(actor)
+
         login(client, test_users.u1)
         response = client.post(records_url(),
                                data=json.dumps({'title': 'blah', 'contributors': []}),
