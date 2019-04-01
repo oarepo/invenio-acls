@@ -11,7 +11,7 @@
 .. image:: https://readthedocs.org/projects/pip/badge/?style=flat
         :target: https://invenio-explicit-acls.readthedocs.io/
 
-.. image:: https://img.shields.io/github/license/cis/invenio-explicit-acls.svg
+.. image:: https://img.shields.io/github/license/oarepo/invenio-explicit-acls.svg
         :target: https://github.com/oarepo/invenio-explicit-acls/blob/master/LICENSE
 
 .. image:: https://img.shields.io/travis/cis/invenio-explicit-acls.svg
