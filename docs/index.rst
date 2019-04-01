@@ -16,6 +16,7 @@ User's Guide
    :maxdepth: 2
 
    installation
+   configuration
    usage
    extending
 

@@ -33,14 +33,6 @@ Both the mapping part (:class:`invenio_explicit_acls.models.ACL`)
 and actor part (:class:`invenio_explicit_acls.models.Actor`)
 are extensible and custom implementation can be provided by extending from these classes.
 
-Configuration
-=============
-
-Some ACLs need to have their own indices inside the elasticsearch.
-To create these indices, run the following command for each ACL-enabled model::
-
-    invenio explicit-acls prepare <schema-url>
-
 
 Mappings
 ========
