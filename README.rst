@@ -12,13 +12,13 @@
         :target: https://invenio-explicit-acls.readthedocs.io/
 
 .. image:: https://img.shields.io/github/license/cis/invenio-explicit-acls.svg
-        :target: https://github.com/cis/invenio-explicit-acls/blob/master/LICENSE
+        :target: https://github.com/oarepo/invenio-explicit-acls/blob/master/LICENSE
 
 .. image:: https://img.shields.io/travis/cis/invenio-explicit-acls.svg
-        :target: https://travis-ci.org/cis/invenio-explicit-acls
+        :target: https://travis-ci.org/oarepo/invenio-explicit-acls
 
 .. image:: https://img.shields.io/coveralls/cis/invenio-explicit-acls.svg
-        :target: https://coveralls.io/r/cis/invenio-explicit-acls
+        :target: https://coveralls.io/r/oarepo/invenio-explicit-acls
 
 .. image:: https://img.shields.io/pypi/v/invenio-explicit-acls.svg
         :target: https://pypi.org/pypi/invenio-explicit-acls
