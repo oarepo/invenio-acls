@@ -5,7 +5,7 @@
     under the terms of the MIT License; see LICENSE file for more details.
 
 ============================================================
- ACLs for OARepo Invenio
+ Invenio Explicit ACLs
 ============================================================
 
 .. image:: https://readthedocs.org/projects/pip/badge/?style=flat
@@ -23,7 +23,9 @@
 .. image:: https://img.shields.io/pypi/v/invenio-explicit-acls.svg
         :target: https://pypi.org/pypi/invenio-explicit-acls
 
-A package that adds support for elasticsearch-executed ACLs
+A package that adds support for elasticsearch-executed declarative ACLs.
+For rationale see slide 27 of
+https://indico.cern.ch/event/773969/contributions/3351844/attachments/1814264/2967405/Access_management-Karolina.pdf
 
 Further documentation is available on
 https://invenio-explicit-acls.readthedocs.io/
