@@ -8,6 +8,9 @@
  ACLs for OARepo Invenio
 ============================================================
 
+.. image:: https://readthedocs.org/projects/pip/badge/?style=flat
+        :target: https://invenio-explicit-acls.readthedocs.io/
+
 .. image:: https://img.shields.io/github/license/cis/invenio-explicit-acls.svg
         :target: https://github.com/cis/invenio-explicit-acls/blob/master/LICENSE
 
