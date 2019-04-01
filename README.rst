@@ -26,7 +26,3 @@ Further documentation is available on
 https://invenio-explicit-acls.readthedocs.io/
 
 ==========================================================
-
-See `documentation`_ for details
-
-.. documentation: docs/index.rst
