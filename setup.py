@@ -58,6 +58,7 @@ extras_require = {
     ],
     'mysql': [
         'invenio-db[mysql]>={}'.format(invenio_db_version),
+        'mysqlclient>=1.4'
     ],
     'postgresql': [
         'invenio-db[postgresql]>={}'.format(invenio_db_version),

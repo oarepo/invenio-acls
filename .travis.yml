@@ -1,6 +1,11 @@
+dist: xenial
+
 addons:
   postgresql: 9.6
   # TODO: Add mysql addon as well
+
+services:
+  - mysql
 
 notifications:
   email: false
@@ -20,10 +25,11 @@ env:
     - ES6_DOWNLOAD_URL="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.0.tar.gz"
     - ES_HOST=127.0.0.1
     - POSTGRESQL_SQLALCHEMY_DATABASE_URI="postgresql+psycopg2://postgres@localhost:5432/invenio"
+    - MYSQL_SQLALCHEMY_DATABASE_URI="mysql://root@localhost/invenio"
   matrix:
     - REQUIREMENTS=release EXTRAS=all,elasticsearch6,postgresql ES_URL=$ES6_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
     - REQUIREMENTS=release EXTRAS=all,elasticsearch6,sqlite ES_URL=$ES6_DOWNLOAD_URL
-    - REQUIREMENTS=release EXTRAS=all,elasticsearch6,mysql ES_URL=$ES6_DOWNLOAD_URL
+    - REQUIREMENTS=release EXTRAS=all,elasticsearch6,mysql ES_URL=$ES6_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$MYSQL_SQLALCHEMY_DATABASE_URI
 
 python:
   - "3.6"

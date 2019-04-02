@@ -45,9 +45,11 @@ from invenio_explicit_acls.utils import schema_to_index
 try:
     from psycopg2 import apilevel
     from sqlalchemy.dialects.postgresql import ARRAY
+    StringArray = ARRAY(db.String)
 except ImportError:
     # array represented in String field
     from .utils import ArrayType as ARRAY
+    StringArray = ARRAY(db.String(length=1024))
 
 
 def gen_uuid_key():
@@ -81,7 +83,7 @@ class ACL(db.Model, Timestamp):
     """Primary key."""
 
     name = db.Column(
-        db.String,
+        db.String(64),
         nullable=False
     )
     """Human readable name/description"""
@@ -91,7 +93,7 @@ class ACL(db.Model, Timestamp):
         default=0)
     """Priority of the acl rule. Only the applicable rules with the highest priority get applied to the resource"""
 
-    schemas = db.Column(ARRAY(db.String))
+    schemas = db.Column(StringArray)
     """Set of record schemas that this ACL handles."""
 
     originator_id = db.Column(db.ForeignKey(User.id, ondelete='CASCADE', ),
@@ -240,7 +242,7 @@ class Actor(db.Model, Timestamp):
     )
 
     name = db.Column(
-        db.String()
+        db.String(64)
     )
 
     type = db.Column(db.String(50))

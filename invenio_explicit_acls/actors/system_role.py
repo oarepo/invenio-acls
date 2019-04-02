@@ -47,7 +47,7 @@ class SystemRoleActor(Actor):
     id = db.Column(db.String(36), db.ForeignKey('explicit_acls_actor.id'), primary_key=True)
     """Id maps to base class' id"""
 
-    system_role = db.Column(db.String())
+    system_role = db.Column(db.String(32))
     """The system role (any_user, authenticated_user)."""
 
     def __str__(self):

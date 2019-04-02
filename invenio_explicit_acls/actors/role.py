@@ -33,7 +33,8 @@ from ..models import Actor
 
 roles_actors = db.Table('explicit_acls_roles_roleactors',
                         db.Column('role_id', db.Integer, db.ForeignKey('accounts_role.id'), primary_key=True),
-                        db.Column('actor_id', db.String(36), db.ForeignKey('explicit_acls_roleactor.id'),
+                        db.Column('actor_id', db.String(36), db.ForeignKey('explicit_acls_roleactor.id',
+                                                                           name='explicit_acls_ra1'),
                                   primary_key=True)
                         )
 

@@ -53,8 +53,8 @@ class ArrayType(TypeDecorator):
 
     def __init__(self, impl_type, *args, **kwargs):
         """Init."""
-        self.impl = impl_type
         super().__init__(*args, **kwargs)
+        self.impl = impl_type
 
     def process_bind_param(self, value, dialect):
         """Receive a bound parameter value to be converted."""

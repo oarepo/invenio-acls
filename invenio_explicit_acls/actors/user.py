@@ -35,7 +35,8 @@ from ..models import Actor
 
 users_actors = db.Table('explicit_acls_users_useractors',
                         db.Column('user_id', db.Integer, db.ForeignKey('accounts_user.id'), primary_key=True),
-                        db.Column('actor_id', db.String(36), db.ForeignKey('explicit_acls_useractor.id'),
+                        db.Column('actor_id', db.String(36), db.ForeignKey('explicit_acls_useractor.id',
+                                                                           name='explicit_acls_ua1'),
                                   primary_key=True)
                         )
 
