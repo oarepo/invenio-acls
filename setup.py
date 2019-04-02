@@ -89,7 +89,8 @@ install_requires = [
     'invenio-access>=1.1.0',
     'invenio-jsonschemas>=1.0.0',
     'arrow>=0.12.1',
-    'SQLAlchemy-Continuum>=1.3.4'
+    'SQLAlchemy-Continuum>=1.3.4',
+    'attrs>=17.4.0'
 ]
 
 packages = find_packages()
