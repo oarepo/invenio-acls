@@ -38,4 +38,5 @@ exclude .licensevars
 exclude tests
 recursive-exclude tests *
 exclude .coveragerc
+exclude requirements-doc.txt
 
