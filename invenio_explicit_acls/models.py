@@ -157,15 +157,16 @@ class ACL(db.Model, Timestamp):
     @classmethod
     def enabled_schemas(clz) -> Iterable[str]:
         """Returns all schemas that have at least one ACL defined on them"""
+        schemas = set()
         if db.engine.dialect.name == 'postgresql':
             # postgresql has array field, so return it from the array
-            return ACL.query(func.unnest(ACL.shemas)).distinct().all()
-
-        # otherwise iterate all the ACLs, let's hope there is not too many of them
-        schemas = set()
-        for acl in ACL.query.all():
-            for schema in acl.schemas:
-                schemas.add(schema)
+            for acl_schemas in db.session.query(func.unnest(ACL.schemas)).distinct().all():
+                schemas.update(acl_schemas)
+        else:
+            # otherwise iterate all the ACLs, let's hope there is not too many of them
+            for acl in ACL.query.all():
+                for schema in acl.schemas:
+                    schemas.add(schema)
         return schemas
 
     def used_in_records(self, older_than_timestamp=None):

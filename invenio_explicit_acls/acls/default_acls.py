@@ -28,6 +28,8 @@ from typing import Iterable
 from invenio_db import db
 from invenio_records import Record
 from invenio_search import current_search_client
+from sqlalchemy import func
+
 
 from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.utils import schema_to_index
@@ -58,12 +60,13 @@ class DefaultACL(ACL):
         schema = record.get('$schema', '')
         if db.engine.dialect.name == 'postgresql':
             # postgresql has array field, so search in the array
-            return DefaultACL.query.filter(DefaultACL.schemas.any(schema)).all()
-
-        # otherwise iterate all the default ACLs, let's hope there is not too many of them
-        for acl in DefaultACL.query.all():
-            if schema in acl.schemas:
-                yield acl
+            for r in DefaultACL.query.filter(DefaultACL.schemas.any(schema)).all():
+                yield r
+        else:
+            # otherwise iterate all the default ACLs, let's hope there is not too many of them
+            for acl in DefaultACL.query.all():
+                if schema in acl.schemas:
+                    yield acl
 
     @classmethod
     def prepare_schema_acls(self, schema):

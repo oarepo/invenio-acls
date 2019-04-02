@@ -29,6 +29,9 @@ from flask_login import login_user
 from helpers import create_record, get_json, login, set_identity
 from invenio_indexer.api import RecordIndexer
 from invenio_search import current_search_client
+
+from invenio_explicit_acls.proxies import current_explicit_acls
+from invenio_explicit_acls.utils import schema_to_index
 from records.marshmallow import RecordSchemaV1
 
 from invenio_explicit_acls.acls import DefaultACL
@@ -50,6 +53,14 @@ def test_aclserializer(app, db, es, es_acl_prepare, test_users):
     pid, rec = create_record({'title': 'blah'}, clz=SchemaEnforcingRecord)
     RecordIndexer().index(rec)
     current_search_client.indices.flush()
+
+    assert rec['$schema'] in current_explicit_acls.enabled_schemas
+    assert list(DefaultACL.get_record_acls(rec)) != []
+
+    index, doc_type = schema_to_index(RECORD_SCHEMA)
+    data = current_search_client.get(index=index, doc_type=doc_type, id=str(pid.object_uuid))['_source']
+    assert '_invenio_explicit_acls' in data
+    assert len(data['_invenio_explicit_acls']) == 1
 
     with app.test_request_context():
         login_user(test_users.u1)

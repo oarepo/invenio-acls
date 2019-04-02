@@ -37,7 +37,6 @@ type:
     }
 
 
-
 2. In some cases Invenio uses default Record class instead of the configured one
    (in PUT, PATCH operations). To make these calls safe, extend your marshmallow schema
    to inherit from `SchemaEnforcingMixin` and do not forget to set `ALLOWED_SCHEMAS`
@@ -71,14 +70,50 @@ type:
     }
 
 
-3. If not using marshmallow, adapt your loader to check and fill the `$schema` property.
+3. Use ACLRecordsSearch as your REST search class:
+
+.. code-block:: python
+
+    # myapp/config.py
+    RECORDS_REST_ENDPOINTS = {
+        'thesis': dict(
+            # ...
+            search_class=ACLRecordsSearch,
+            # ...
+        )
+    }
+
+
+
+4. Use permissions from `invenio_explicit_acls.permissions` as your
+   permission factory impl:
+
+.. code-block:: python
+
+    # myapp/config.py
+    RECORDS_REST_ENDPOINTS = {
+        'thesis': dict(
+            # ...
+            read_permission_factory_imp=acl_read_permission_factory,
+            update_permission_factory_imp=acl_update_permission_factory,
+            delete_permission_factory_imp=acl_delete_permission_factory,
+            # ...
+        )
+    }
+
+
+5. Do not forget to supply your own `create_permission_factory_impl` - it is not handled
+   by this library!
+
+
+6. If not using marshmallow, adapt your loader to check and fill the `$schema` property.
    Never trust user (or your code) and always check!
 
-4. For each of the schemas defined in step 1, create additional indices in ES:
+7. For each of the schemas defined in step 1, create additional indices in ES:
 
 .. code-block:: bash
 
     # run in bash
     invenio explicit-acls prepare <schema-url>
 
-5. Restart the server and you are ready to go.
+8. Restart the server and you are ready to go.
