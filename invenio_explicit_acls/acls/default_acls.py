@@ -30,7 +30,6 @@ from invenio_records import Record
 from invenio_search import current_search_client
 from sqlalchemy import func
 
-
 from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.utils import schema_to_index
 

@@ -29,15 +29,14 @@ from flask_login import login_user
 from helpers import create_record, get_json, login, set_identity
 from invenio_indexer.api import RecordIndexer
 from invenio_search import current_search_client
-
-from invenio_explicit_acls.proxies import current_explicit_acls
-from invenio_explicit_acls.utils import schema_to_index
 from records.marshmallow import RecordSchemaV1
 
 from invenio_explicit_acls.acls import DefaultACL
 from invenio_explicit_acls.actors import UserActor
+from invenio_explicit_acls.proxies import current_explicit_acls
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.serializers import ACLJSONSerializer
+from invenio_explicit_acls.utils import schema_to_index
 
 RECORD_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
 

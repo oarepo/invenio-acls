@@ -50,5 +50,3 @@ def test_filter_schemas(app, db, es, es_acl_prepare, test_users):
 
     assert DefaultACL.query.filter(DefaultACL.schemas.any('aaa')).count() == 2
     assert DefaultACL.query.filter(DefaultACL.schemas.any(RECORD_SCHEMA)).count() == 1
-
-
