@@ -27,5 +27,6 @@
 from .default_acls import DefaultACL
 from .elasticsearch_acls import ElasticsearchACL
 from .id_acls import IdACL
+from .propertyvalue_acls import PropertyValueACL
 
-__all__ = ('DefaultACL', 'ElasticsearchACL', 'IdACL')
+__all__ = ('DefaultACL', 'ElasticsearchACL', 'IdACL', 'PropertyValueACL')

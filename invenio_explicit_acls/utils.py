@@ -25,6 +25,7 @@
 """Utility functions."""
 import json
 
+from invenio_jsonschemas import current_jsonschemas
 from invenio_search import current_search
 from invenio_search.utils import schema_to_index as invenio_schema_to_index
 from sqlalchemy.schema import Column
@@ -67,3 +68,39 @@ class ArrayType(TypeDecorator):
     def copy(self):
         """Produce a copy of this :class:`.TypeDecorator` instance."""
         return ArrayType(self.impl.length)
+
+
+def convert_relative_schema_to_absolute(x):
+    """Convert relative record schema to absolute if needed."""
+    if x.startswith('http://') or x.startswith('https://'):
+        return x
+    return current_jsonschemas.path_to_url(x)
+
+
+class AllowedSchemaMixin(object):
+    """A mixin that keeps allowed and preferred schema. Not to be used directly."""
+
+    # DO NOT forget to set these up in subclasses
+    ALLOWED_SCHEMAS = ()
+    PREFERRED_SCHEMA = None
+    _RESOLVED = False
+
+    @classmethod
+    def _prepare_schemas(cls):
+        """Converts ALLOWED_SCHEMAS and PREFERRED_SCHEMA to absolute urls."""
+        if not cls._RESOLVED:
+            cls.ALLOWED_SCHEMAS = tuple(convert_relative_schema_to_absolute(x) for x in cls.ALLOWED_SCHEMAS)
+            cls.PREFERRED_SCHEMA = convert_relative_schema_to_absolute(cls.PREFERRED_SCHEMA)
+            cls._RESOLVED = True
+
+    @classmethod
+    def _convert_and_get_schema(cls, data):
+        """Locate $schema in data and if needed convert it to absolute. Returns the converted schema."""
+        cls._prepare_schemas()
+        schema = data.get('$schema')
+        if schema:
+            absolute_schema = convert_relative_schema_to_absolute(schema)
+            if schema != absolute_schema:
+                schema = absolute_schema
+                data['$schema'] = absolute_schema
+        return schema

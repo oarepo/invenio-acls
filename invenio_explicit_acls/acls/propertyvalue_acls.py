@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2019 UCT Prague.
 # 
-# elasticsearch_acls.py is part of Invenio Explicit ACLs 
+# propertyvalue_acls.py is part of Invenio Explicit ACLs 
 # (see https://github.com/oarepo/invenio-explicit-acls).
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,30 +22,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-"""Models for storing Elasticsearch ACLs."""
+"""Simple ACL matching all records that have a metadata property equal to a given value."""
+import enum
 import logging
 
 from invenio_db import db
+from sqlalchemy_utils import ChoiceType
 
 from invenio_explicit_acls.models import ACL
 
 from .es_mixin import ESACLMixin
 
-try:
-    from psycopg2 import apilevel
-    from sqlalchemy.dialects.postgresql import JSONB as JSON
-except:
-    from sqlalchemy.types import JSON
-
 logger = logging.getLogger(__name__)
 
 
-class ElasticsearchACL(ESACLMixin, ACL):
-    """Storage for ACL Sets."""
+class MatchOperation(enum.Enum):
+    """The operation for matching property to value might be either term or match - choose according to the schema."""
 
-    __tablename__ = 'explicit_acls_elasticsearchacl'
+    match = 'match'
+    term  = 'term'
+
+
+class PropertyValueACL(ESACLMixin, ACL):
+    """An ACL that matches all records that have a metadata property equal to a given constant value."""
+
+    __tablename__ = 'explicit_acls_propertyvalueacl'
     __mapper_args__ = {
-        'polymorphic_identity': 'elasticsearch',
+        'polymorphic_identity': 'propertyvalue',
     }
 
     #
@@ -54,14 +57,24 @@ class ElasticsearchACL(ESACLMixin, ACL):
     id = db.Column(db.String(36), db.ForeignKey('explicit_acls_acl.id'), primary_key=True)
     """Id maps to base class' id"""
 
-    record_selector = db.Column(JSON)
-    """JSON field with pattern to which the ACL applies. 
-        For example, {'faculty': 'FCHI'} pattern selects all resources with faculty FCHI
-    """
+    property_name = db.Column(db.String(64))
+    """Name of the property in elasticsearch."""
+
+    property_value = db.Column(db.String(128))
+    """Value of the property in elasticsearch."""
+
+    match_operation = db.Column(ChoiceType(MatchOperation, impl=db.String(length=10)), default=MatchOperation.term.value)
+    """Search mode: can be either term or match"""
+
+    @property
+    def record_selector(self):
+        """Returns an elasticsearch query matching resources that this ACL maps to."""
+        return {
+            self.match_operation: {
+                self.property_name: self.property_value
+            }
+        }
 
     def __repr__(self):
         """String representation for model."""
         return '"{0.name}" ({0.id}) on schemas {0.schemas}'.format(self)
-
-
-__all__ = ('ElasticsearchACL',)

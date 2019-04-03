@@ -97,7 +97,6 @@ class DefaultACL(ACL):
                     "_source": False,
                 }
             )['hits']['hits']:
-                print(r)
                 yield r['_id']
 
     def update(self):

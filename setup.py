@@ -136,9 +136,6 @@ setup(
             'roleactor_aclset_adminview = invenio_explicit_acls.admin:roleactor_aclset_adminview',
             'systemroleactor_aclset_adminview = invenio_explicit_acls.admin:systemroleactor_aclset_adminview',
         ],
-        'invenio_jsonschemas.schemas': [
-            'invenio_explicit_acls = invenio_explicit_acls.jsonschemas'
-        ],
         'flask.commands': [
             'invenio_explicit_acls = invenio_explicit_acls.cli:explicit_acls'
         ],

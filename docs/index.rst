@@ -6,15 +6,25 @@
     under the terms of the MIT License; see LICENSE file for more details.
 
 
-
 .. include:: ../README.rst
 
 User's Guide
 ------------
 
+At first **read the principles** section to find out if this library is usable for your use cases.
+
+Do not skip steps in the configuration section - if you skip any of them your application
+will be insecure.
+
+As nobody is perfect, if you use this library **do your own security testing**
+on your repository.
+
+Enjoy!
+
 .. toctree::
    :maxdepth: 2
 
+   principles
    installation
    configuration
    usage

@@ -37,10 +37,26 @@ type:
     }
 
 
-2. In some cases Invenio uses default Record class instead of the configured one
-   (in PUT, PATCH operations). To make these calls safe, extend your marshmallow schema
-   to inherit from `SchemaEnforcingMixin` and do not forget to set `ALLOWED_SCHEMAS`
-   and `PREFERRED_SCHEMA`:
+2. Make Invenio use your Record class for all API calls (just a precaution, real
+   validation on REST calls is in the next step):
+
+.. code-block:: python
+
+    THESES_PID = 'pid(recid,record_class="myapp.api:ThesisRecord")'
+
+    # myapp/config.py
+    RECORDS_REST_ENDPOINTS = {
+        'thesis': dict(
+            # ...
+            item_route='/theses/<{0}:pid_value>'.format(THESES_PID),
+            # ...
+        )
+    }
+
+
+3. For metadata validation during REST, extend your marshmallow schema
+   to inherit from `SchemaEnforcingMixin` and do not forget to set
+   `ALLOWED_SCHEMAS` and `PREFERRED_SCHEMA`:
 
 .. code-block:: python
 
@@ -70,7 +86,7 @@ type:
     }
 
 
-3. Use ACLRecordsSearch as your REST search class:
+4. Use ACLRecordsSearch as your REST search class:
 
 .. code-block:: python
 
@@ -85,7 +101,7 @@ type:
 
 
 
-4. Use permissions from `invenio_explicit_acls.permissions` as your
+5. Use permissions from `invenio_explicit_acls.permissions` as your
    permission factory impl:
 
 .. code-block:: python
@@ -102,18 +118,18 @@ type:
     }
 
 
-5. Do not forget to supply your own `create_permission_factory_impl` - it is not handled
+6. Do not forget to supply your own `create_permission_factory_impl` - it is not handled
    by this library!
 
 
-6. If not using marshmallow, adapt your loader to check and fill the `$schema` property.
+7. If not using marshmallow, adapt your loader to check and fill the `$schema` property.
    Never trust user (or your code) and always check!
 
-7. For each of the schemas defined in step 1, create additional indices in ES:
+8. For each of the schemas defined in step 1, create additional indices in ES:
 
 .. code-block:: bash
 
     # run in bash
     invenio explicit-acls prepare <schema-url>
 
-8. Restart the server and you are ready to go.
+9. Restart the server and you are ready to go.

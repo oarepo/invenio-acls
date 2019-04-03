@@ -28,8 +28,8 @@ from flask_security import AnonymousUser
 
 from invenio_explicit_acls.actors import RoleActor
 
-RECORD_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
-ANOTHER_SCHEMA = 'http://localhost/schemas/records/blah-v1.0.0.json'
+RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
+ANOTHER_SCHEMA = 'https://localhost/schemas/records/blah-v1.0.0.json'
 
 
 def test_get_es_schema(app, db, es, test_users):

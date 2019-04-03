@@ -147,6 +147,7 @@ class AclAPI:
 
     @property
     def enabled_schemas(self):
+        """Returns a set of schemas for which there exists at least one ACL."""
         return ACL.enabled_schemas()
 
     def serialize_record_acls(self, record_acls: Iterable[ACL]):

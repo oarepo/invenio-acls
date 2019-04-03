@@ -38,7 +38,7 @@ from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.serializers import ACLJSONSerializer
 from invenio_explicit_acls.utils import schema_to_index
 
-RECORD_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
+RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
 
 
 def test_aclserializer(app, db, es, es_acl_prepare, test_users):

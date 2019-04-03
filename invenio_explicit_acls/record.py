@@ -23,10 +23,14 @@
 # SOFTWARE.
 #
 """ACL related mixins for Record class."""
+from invenio_jsonschemas import current_jsonschemas
 from invenio_records import Record
 
+from invenio_explicit_acls.utils import AllowedSchemaMixin, \
+    convert_relative_schema_to_absolute
 
-class SchemaKeepingRecordMixin(object):
+
+class SchemaKeepingRecordMixin(AllowedSchemaMixin):
     """
     A mixin for Record class that makes sure $schema is always in allowed schemas.
 
@@ -38,6 +42,7 @@ class SchemaKeepingRecordMixin(object):
     # DO NOT forget to set these up in subclasses
     ALLOWED_SCHEMAS = ()
     PREFERRED_SCHEMA = None
+    _RESOLVED = False
 
     def clear(self):
         """Preserves the schema even if the record is cleared and all metadata wiped out."""
@@ -53,9 +58,8 @@ class SchemaKeepingRecordMixin(object):
 
     @classmethod
     def _check_schema(cls, data):
-        has_schema = '$schema' in data
-        if has_schema:
-            schema = data.get('$schema')
+        schema = cls._convert_and_get_schema(data)
+        if schema:
             if schema not in cls.ALLOWED_SCHEMAS:
                 raise AttributeError('Schema %s not in allowed schemas %s' % (data['$schema'], cls.ALLOWED_SCHEMAS))
 
@@ -66,8 +70,10 @@ class SchemaKeepingRecordMixin(object):
 
         For parameters see :py:class:invenio_records.api.Record
         """
+        cls._prepare_schemas()
+
         if '$schema' not in data:
-            data['$schema'] = cls.PREFERRED_SCHEMA
+            data['$schema'] = convert_relative_schema_to_absolute(cls.PREFERRED_SCHEMA)
         else:
             cls._check_schema(data)
         ret = super().create(data, id_, **kwargs)
@@ -77,5 +83,5 @@ class SchemaKeepingRecordMixin(object):
 class SchemaEnforcingRecord(SchemaKeepingRecordMixin, Record):
     """Sample implementation of Record for the cookiecutter records datamodel."""
 
-    ALLOWED_SCHEMAS = ('http://localhost/schemas/records/record-v1.0.0.json',)
-    PREFERRED_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
+    ALLOWED_SCHEMAS = ('records/record-v1.0.0.json',)
+    PREFERRED_SCHEMA = 'records/record-v1.0.0.json'

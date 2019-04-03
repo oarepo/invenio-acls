@@ -25,14 +25,17 @@
 """Marshmallow mixin that returns cached ACLs on Record."""
 from marshmallow import ValidationError, fields, post_load, validates
 
+from invenio_explicit_acls.utils import AllowedSchemaMixin, \
+    convert_relative_schema_to_absolute
 
-class SchemaEnforcingMixin(object):
+
+class SchemaEnforcingMixin(AllowedSchemaMixin):
     """A marshmallow mixin that enforces that record has only one of predefined schemas."""
 
-    ALLOWED_SCHEMAS = ('http://localhost/schemas/records/record-v1.0.0.json',)
-    """A list of allowed schemas."""
+    ALLOWED_SCHEMAS = ('records/record-v1.0.0.json',)
+    """A list of allowed schemas, either relative or absolute urls."""
 
-    PREFERRED_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
+    PREFERRED_SCHEMA = 'records/record-v1.0.0.json'
     """If a schema is not set, add this schema."""
 
     schema = fields.String(attribute='$schema', load_from='$schema', dump_to='$schema', required=False)
@@ -40,6 +43,8 @@ class SchemaEnforcingMixin(object):
     @validates('schema')
     def validate_schema(self, value):
         """Checks that schema (if provided) is in the list of allowed schemas."""
+        self._prepare_schemas()
+        value = convert_relative_schema_to_absolute(value)
         if value:
             if value not in self.ALLOWED_SCHEMAS:
                 raise ValidationError('Schema %s not in allowed schemas %s' % (value, self.ALLOWED_SCHEMAS))
@@ -47,8 +52,11 @@ class SchemaEnforcingMixin(object):
     @post_load
     def add_schema(self, data):
         """If schema has not been provided, sets the PREFERRED_SCHEMA."""
+        self._prepare_schemas()
         if '$schema' not in data:
-            data['$schema'] = self.PREFERRED_SCHEMA
+            data['$schema'] = convert_relative_schema_to_absolute(self.PREFERRED_SCHEMA)
+        else:
+            self._convert_and_get_schema(data)
         return data
 
 

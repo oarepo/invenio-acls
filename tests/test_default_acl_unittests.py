@@ -29,8 +29,8 @@ from invenio_search import current_search_client
 from invenio_explicit_acls.acls import DefaultACL
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 
-RECORD_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
-ANOTHER_SCHEMA = 'http://localhost/schemas/records/blah-v1.0.0.json'
+RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
+ANOTHER_SCHEMA = 'https://localhost/schemas/records/blah-v1.0.0.json'
 
 
 def test_default_acl_get_record_acl(app, db, es, es_acl_prepare, test_users):
@@ -92,4 +92,4 @@ def test_default_acl_repr(app, db, es, es_acl_prepare, test_users):
         acl = DefaultACL(name='test', schemas=[RECORD_SCHEMA],
                          priority=0, operation='get', originator=test_users.u1)
         db.session.add(acl)
-    assert repr(acl) == "Default ACL on ['http://localhost/schemas/records/record-v1.0.0.json']"
+    assert repr(acl) == "Default ACL on ['https://localhost/schemas/records/record-v1.0.0.json']"

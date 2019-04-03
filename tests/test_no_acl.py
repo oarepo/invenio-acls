@@ -36,7 +36,7 @@ from invenio_explicit_acls.acls import DefaultACL
 from invenio_explicit_acls.actors import UserActor
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 
-RECORD_SCHEMA = 'http://localhost/schemas/records/record-v1.0.0.json'
+RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
 
 
 @pytest.mark.parametrize('app', [dict(
@@ -67,7 +67,7 @@ def test_get_record_without_enabled_acl(app, db, es):
         assert res.status_code == 200
         assert get_json(res)['metadata'] == {
             'control_number': pid.pid_value,
-            '$schema': 'http://localhost/schemas/records/record-v1.0.0.json'
+            '$schema': 'https://localhost/schemas/records/record-v1.0.0.json'
         }
 
     # get it directly from ES
@@ -168,7 +168,7 @@ def test_create_record_no_acls_authenticated(app, db, es, es_acl_prepare, test_u
         response = client.post(records_url(),
                                data=json.dumps({'title': 'blah', 'contributors': []}),
                                content_type='application/json')
-        print("Response", response.get_data(as_text=True))
+        # print("Response", response.get_data(as_text=True))
         assert response.status_code == 201
 
         created_record_metadata = get_json(response)['metadata']

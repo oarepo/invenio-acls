@@ -158,7 +158,7 @@ class ACL(db.Model, Timestamp):
 
     @classmethod
     def enabled_schemas(clz) -> Iterable[str]:
-        """Returns all schemas that have at least one ACL defined on them"""
+        """Returns all schemas that have at least one ACL defined on them."""
         schemas = set()
         if db.engine.dialect.name == 'postgresql':
             # postgresql has array field, so return it from the array

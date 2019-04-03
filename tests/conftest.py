@@ -59,7 +59,6 @@ from invenio_explicit_acls.ext import InvenioExplicitAcls
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 
 sys.path.insert(0, os.path.dirname(__file__))
-print(sys.path)
 
 
 class TestSearch(ACLRecordsSearch):
