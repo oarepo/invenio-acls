@@ -32,14 +32,16 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import Select2Widget
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from invenio_indexer import current_record_to_index
 from invenio_jsonschemas import current_jsonschemas
 from invenio_records import Record
 from invenio_search import current_search_client
+from wtforms import SelectField
 from wtforms.validators import StopValidation
 
 from invenio_explicit_acls.acls import ElasticsearchACL, IdACL
 from invenio_explicit_acls.acls.default_acls import DefaultACL
+from invenio_explicit_acls.acls.propertyvalue_acls import BoolOperation, \
+    MatchOperation, PropertyValue, PropertyValueACL
 from invenio_explicit_acls.actors import RoleActor, SystemRoleActor, UserActor
 from invenio_explicit_acls.proxies import current_explicit_acls
 
@@ -247,6 +249,34 @@ class DefaultACLModelView(ACLModelViewMixin, ModelView):
     }
 
 
+class PropertyValueACLModelView(ACLModelViewMixin, ModelView):
+    """ModelView for Property based ACLs."""
+
+    column_formatters = dict()
+    column_details_list = (
+        'id', 'name', 'schemas', 'created', 'updated', 'originator', 'priority', 'operation')
+    column_list = ('id', 'name', 'schemas', 'operation', 'priority', 'created', 'updated', 'originator')
+    column_labels = dict(
+        id=_('ACL ID'),
+    )
+    column_filters = ('created', 'updated',)
+    column_searchable_list = ('name',)
+    column_default_sort = 'name'
+    form_base_class = FlaskForm
+    form_columns = ('name', 'priority', 'schemas', 'operation', 'actors')
+    form_args = dict(
+    )
+    page_size = 25
+    form_extra_fields = {
+        'schemas': sqla.fields.QuerySelectMultipleField(
+            label='Schemas',
+            query_factory=schemas_choices,
+            widget=Select2Widget(multiple=True),
+            get_pk=lambda x: x,
+        )
+    }
+
+
 class UserActorModelView(OriginatorMixin, ModelView):
     """ModelView for user actors."""
 
@@ -340,6 +370,38 @@ class SystemRoleActorModelView(OriginatorMixin, ModelView):
             model.name = model.role
 
 
+class PropertyValueModelView(OriginatorMixin, ModelView):
+    """ModelView for ACL Property Values."""
+
+    column_formatters = dict()
+    column_details_list = (
+        'id', 'acl', 'name', 'value', 'match_operation', 'bool_operation', 'originator')
+    column_list = ('id', 'name', 'value', 'match_operation', 'bool_operation', 'created', 'updated', 'originator')
+    column_labels = dict(
+        id=_('Property ID'),
+    )
+    column_filters = ('created', 'updated',)
+    column_searchable_list = ()
+    column_default_sort = 'created'
+    form_base_class = FlaskForm
+    form_columns = ('acl', 'name', 'value', 'match_operation', 'bool_operation', 'originator')
+    form_args = dict(
+    )
+    page_size = 25
+    form_extra_fields = {
+        'match_operation': SelectField(
+            choices=[(op.value, op.name) for op in MatchOperation],
+            label=_('Value matching Operation'),
+            widget=Select2Widget(multiple=False),
+        ),
+        'bool_operation': SelectField(
+            choices=[(op.value, op.name) for op in BoolOperation],
+            label=_('Bool filter Operation'),
+            widget=Select2Widget(multiple=False),
+        )
+    }
+
+
 elasticsearch_aclset_adminview = dict(
     modelview=ElasticsearchACLModelView,
     model=ElasticsearchACL,
@@ -353,6 +415,11 @@ id_aclset_adminview = dict(
 default_aclset_adminview = dict(
     modelview=DefaultACLModelView,
     model=DefaultACL,
+    category=_('ACLs'))
+
+propertyvalueacl_aclset_adminview = dict(
+    modelview=PropertyValueACLModelView,
+    model=PropertyValueACL,
     category=_('ACLs'))
 
 useractor_aclset_adminview = dict(
@@ -369,3 +436,8 @@ systemroleactor_aclset_adminview = dict(
     modelview=SystemRoleActorModelView,
     model=SystemRoleActor,
     category=_('ACL Actors'))
+
+propertyvalue_aclset_adminview = dict(
+    modelview=PropertyValueModelView,
+    model=PropertyValue,
+    category=_('ACLs'))

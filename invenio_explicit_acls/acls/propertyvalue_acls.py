@@ -26,10 +26,11 @@
 import enum
 import logging
 
+from invenio_accounts.models import User
 from invenio_db import db
-from sqlalchemy_utils import ChoiceType
+from sqlalchemy_utils import ChoiceType, Timestamp
 
-from invenio_explicit_acls.models import ACL
+from invenio_explicit_acls.models import ACL, gen_uuid_key
 
 from .es_mixin import ESACLMixin
 
@@ -40,7 +41,60 @@ class MatchOperation(enum.Enum):
     """The operation for matching property to value might be either term or match - choose according to the schema."""
 
     match = 'match'
-    term  = 'term'
+    term = 'term'
+
+
+class BoolOperation(enum.Enum):
+    """ The ES Bool filter query type. """
+
+    must = 'must'
+    """All properties of this type must match. The equivalent of AND."""
+    mustNot = 'must_not'
+    """All properties of this type must not match. The equivalent of NOT."""
+    should = 'should'
+    """At least one property must match. The equivalent of OR."""
+    filter = 'filter'
+    """Properties that must match, but are run in non-scoring, filtering mode."""
+
+
+class PropertyValue(db.Model, Timestamp):
+    """ Property and Value match to be used in Property based ACL queries """
+
+    __tablename__ = 'explicit_acls_propertyvalue'
+
+    #
+    # Fields
+    #
+    id = db.Column(
+        db.String(36),
+        default=gen_uuid_key,
+        primary_key=True
+    )
+    """Primary key."""
+
+    acl_id = db.Column(db.ForeignKey('explicit_acls_propertyvalueacl.id',
+                                     name='fk_explicit_acls_propertyvalue_acl_id'))
+    acl = db.relationship('PropertyValueACL', back_populates='propertyvalues')
+
+    name = db.Column(db.String(64))
+    """Name of the property in elasticsearch."""
+
+    value = db.Column(db.String(128))
+    """Value of the property in elasticsearch."""
+
+    match_operation = db.Column(ChoiceType(MatchOperation, impl=db.String(length=10)),
+                                default=MatchOperation.term.value)
+    """Property value matching mode: can be either term or match."""
+
+    bool_operation = db.Column(ChoiceType(BoolOperation, impl=db.String(length=10)), default=BoolOperation.must.value)
+    """Bool filter operation mode this property belongs to."""
+
+    originator_id = db.Column(db.ForeignKey(User.id, ondelete='CASCADE', ),
+                              nullable=False, index=True)
+    originator = db.relationship(
+        User,
+        backref=db.backref("authored_properties"))
+    """The originator (person that last time modified the Property)"""
 
 
 class PropertyValueACL(ESACLMixin, ACL):
@@ -57,22 +111,30 @@ class PropertyValueACL(ESACLMixin, ACL):
     id = db.Column(db.String(36), db.ForeignKey('explicit_acls_acl.id'), primary_key=True)
     """Id maps to base class' id"""
 
-    property_name = db.Column(db.String(64))
-    """Name of the property in elasticsearch."""
-
-    property_value = db.Column(db.String(128))
-    """Value of the property in elasticsearch."""
-
-    match_operation = db.Column(ChoiceType(MatchOperation, impl=db.String(length=10)), default=MatchOperation.term.value)
-    """Search mode: can be either term or match"""
+    propertyvalues = db.relationship("PropertyValue", back_populates="acl")
+    """A set of actors for this ACL (who have rights to perform an operation this ACL references)"""
 
     @property
     def record_selector(self):
         """Returns an elasticsearch query matching resources that this ACL maps to."""
+        boolProps = {}
+
+        for prop in self.propertyvalues:  # type: PropertyValue
+            try:
+                boolProps[prop.bool_operation].append({
+                    prop.match_operation: {
+                        prop.name: prop.value
+                    }
+                })
+            except KeyError:
+                boolProps[prop.bool_operation] = [{
+                    prop.match_operation: {
+                        prop.name: prop.value
+                    }
+                }]
+
         return {
-            self.match_operation: {
-                self.property_name: self.property_value
-            }
+            'bool': boolProps
         }
 
     def __repr__(self):

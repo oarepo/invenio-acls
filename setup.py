@@ -132,9 +132,11 @@ setup(
             'elasticsearch_aclset_adminview = invenio_explicit_acls.admin:elasticsearch_aclset_adminview',
             'id_aclset_adminview = invenio_explicit_acls.admin:id_aclset_adminview',
             'default_aclset_adminview = invenio_explicit_acls.admin:default_aclset_adminview',
+            'propertyvalueacl_aclset_adminview = invenio_explicit_acls.admin:propertyvalueacl_aclset_adminview',
             'useractor_aclset_adminview = invenio_explicit_acls.admin:useractor_aclset_adminview',
             'roleactor_aclset_adminview = invenio_explicit_acls.admin:roleactor_aclset_adminview',
             'systemroleactor_aclset_adminview = invenio_explicit_acls.admin:systemroleactor_aclset_adminview',
+            'propertyvalue_aclset_adminview = invenio_explicit_acls.admin:propertyvalue_aclset_adminview',
         ],
         'flask.commands': [
             'invenio_explicit_acls = invenio_explicit_acls.cli:explicit_acls'
