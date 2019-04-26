@@ -280,3 +280,13 @@ def test_no_es_prepared_index(app, db, es, test_users):
                                            'Please run invenio explicit-acls prepare '
                                            'https://localhost/schemas/records/record-v1.0.0.json'):
         list(PropertyValueACL.get_record_acls(record))
+
+
+def test_propertyvalue_str(app, db, es, es_acl_prepare, test_users):
+    with db.session.begin_nested():
+        acl = PropertyValueACL(name='test', schemas=[RECORD_SCHEMA],
+                               priority=0, operation='get', originator=test_users.u1)
+        propval = PropertyValue(name='keywords', value='test', acl=acl, originator=test_users.u1,
+                                bool_operation=BoolOperation.must.value,
+                                match_operation=MatchOperation.term.value)
+        assert str(propval) == 'must: term(keywords=test)'

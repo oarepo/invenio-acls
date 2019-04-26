@@ -74,7 +74,7 @@ class PropertyValue(db.Model, Timestamp):
 
     acl_id = db.Column(db.ForeignKey('explicit_acls_propertyvalueacl.id',
                                      name='fk_explicit_acls_propertyvalue_acl_id'))
-    acl = db.relationship('PropertyValueACL', back_populates='propertyvalues')
+    acl = db.relationship('PropertyValueACL', back_populates='property_values')
 
     name = db.Column(db.String(64))
     """Name of the property in elasticsearch."""
@@ -96,6 +96,9 @@ class PropertyValue(db.Model, Timestamp):
         backref=db.backref("authored_properties"))
     """The originator (person that last time modified the Property)"""
 
+    def __str__(self):
+        return '%s: %s(%s=%s)' % (self.bool_operation, self.match_operation, self.name, self.value, )
+
 
 class PropertyValueACL(ESACLMixin, ACL):
     """An ACL that matches all records that have a metadata property equal to a given constant value."""
@@ -111,7 +114,7 @@ class PropertyValueACL(ESACLMixin, ACL):
     id = db.Column(db.String(36), db.ForeignKey('explicit_acls_acl.id'), primary_key=True)
     """Id maps to base class' id"""
 
-    propertyvalues = db.relationship("PropertyValue", back_populates="acl")
+    property_values = db.relationship("PropertyValue", back_populates="acl")
     """A set of actors for this ACL (who have rights to perform an operation this ACL references)"""
 
     @property
@@ -119,7 +122,7 @@ class PropertyValueACL(ESACLMixin, ACL):
         """Returns an elasticsearch query matching resources that this ACL maps to."""
         boolProps = {}
 
-        for prop in self.propertyvalues:  # type: PropertyValue
+        for prop in self.property_values:  # type: PropertyValue
             try:
                 boolProps[prop.bool_operation].append({
                     prop.match_operation: {

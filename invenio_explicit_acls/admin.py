@@ -30,6 +30,7 @@ import traceback
 from flask_admin.contrib import sqla
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import Select2Widget
+from flask_admin.model import InlineFormAdmin
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from invenio_jsonschemas import current_jsonschemas
@@ -249,15 +250,34 @@ class DefaultACLModelView(ACLModelViewMixin, ModelView):
     }
 
 
+class PropertyValueModelForm(OriginatorMixin, InlineFormAdmin):
+    """ModelView for ACL Property Values."""
+    # form_base_class = FlaskForm
+    form_columns = ('id', 'name', 'value', 'match_operation', 'bool_operation')
+    form_extra_fields = {
+        'match_operation': SelectField(
+            choices=[(op.value, op.name) for op in MatchOperation],
+            label=_('Value matching Operation'),
+            widget=Select2Widget(multiple=False),
+        ),
+        'bool_operation': SelectField(
+            choices=[(op.value, op.name) for op in BoolOperation],
+            label=_('Bool filter Operation'),
+            widget=Select2Widget(multiple=False),
+        )
+    }
+
+
 class PropertyValueACLModelView(ACLModelViewMixin, ModelView):
     """ModelView for Property based ACLs."""
 
     column_formatters = dict()
     column_details_list = (
-        'id', 'name', 'schemas', 'created', 'updated', 'originator', 'priority', 'operation')
-    column_list = ('id', 'name', 'schemas', 'operation', 'priority', 'created', 'updated', 'originator')
+        'id', 'name', 'schemas', 'created', 'updated', 'originator', 'priority', 'operation', 'property_values')
+    column_list = ('name', 'schemas', 'operation', 'priority', 'actors', 'created', 'updated', 'originator')
     column_labels = dict(
         id=_('ACL ID'),
+        property_value = _('Properties')
     )
     column_filters = ('created', 'updated',)
     column_searchable_list = ('name',)
@@ -275,6 +295,7 @@ class PropertyValueACLModelView(ACLModelViewMixin, ModelView):
             get_pk=lambda x: x,
         )
     }
+    inline_models = (PropertyValueModelForm(PropertyValue),)
 
 
 class UserActorModelView(OriginatorMixin, ModelView):
@@ -370,38 +391,6 @@ class SystemRoleActorModelView(OriginatorMixin, ModelView):
             model.name = model.role
 
 
-class PropertyValueModelView(OriginatorMixin, ModelView):
-    """ModelView for ACL Property Values."""
-
-    column_formatters = dict()
-    column_details_list = (
-        'id', 'acl', 'name', 'value', 'match_operation', 'bool_operation', 'originator')
-    column_list = ('id', 'name', 'value', 'match_operation', 'bool_operation', 'created', 'updated', 'originator')
-    column_labels = dict(
-        id=_('Property ID'),
-    )
-    column_filters = ('created', 'updated',)
-    column_searchable_list = ()
-    column_default_sort = 'created'
-    form_base_class = FlaskForm
-    form_columns = ('acl', 'name', 'value', 'match_operation', 'bool_operation', 'originator')
-    form_args = dict(
-    )
-    page_size = 25
-    form_extra_fields = {
-        'match_operation': SelectField(
-            choices=[(op.value, op.name) for op in MatchOperation],
-            label=_('Value matching Operation'),
-            widget=Select2Widget(multiple=False),
-        ),
-        'bool_operation': SelectField(
-            choices=[(op.value, op.name) for op in BoolOperation],
-            label=_('Bool filter Operation'),
-            widget=Select2Widget(multiple=False),
-        )
-    }
-
-
 elasticsearch_aclset_adminview = dict(
     modelview=ElasticsearchACLModelView,
     model=ElasticsearchACL,
@@ -436,8 +425,3 @@ systemroleactor_aclset_adminview = dict(
     modelview=SystemRoleActorModelView,
     model=SystemRoleActor,
     category=_('ACL Actors'))
-
-propertyvalue_aclset_adminview = dict(
-    modelview=PropertyValueModelView,
-    model=PropertyValue,
-    category=_('ACLs'))

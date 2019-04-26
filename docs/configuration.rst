@@ -2,7 +2,7 @@ Configuration
 -------------
 
 `invenio-explicit-acls` discriminates records via their `$schema` property that
-needs to be present on metadata of guarded records.
+needs to be present in the metadata of guarded records.
 
 The following configuration steps should be carried out for each enabled record
 type:
@@ -14,7 +14,7 @@ type:
    `Record` and `SchemaKeepingRecordMixin`). The `ALLOWED_SCHEMAS` is a list of schemas
    that are allowed in user data, `PREFERRED_SCHEMA` will be used when user does not
    specify a schema. Whenever you call (internally) a `ThesisRecord.create(...)`
-   the `$schema` would be added automatically.
+   the `$schema` will get added automatically.
 
 .. code-block:: python
 

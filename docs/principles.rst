@@ -9,39 +9,6 @@ ACLs can be assigned to a single record or a set of records identified
 by configurable selectors. ACLs can be added/modified/removed during
 runtime.
 
-Performance:
-
-+------------------------------------+----------------------------------------------------------------------+
-| Get record                         | Fast (no extra query to elasticsearch)                               |
-+------------------------------------+----------------------------------------------------------------------+
-| List record                        | Fast (no extra query to elasticsearch)                               |
-+------------------------------------+----------------------------------------------------------------------+
-| Create a new record                | Reasonably Fast (1 extra query to ES)                                |
-+------------------------------------+----------------------------------------------------------------------+
-| Edit record                        | Reasonably Fast (1 extra query to ES)                                |
-+------------------------------------+----------------------------------------------------------------------+
-| Delete record                      | Fast, no extra query                                                 |
-+------------------------------------+----------------------------------------------------------------------+
-| Create a new ACL                   | Depends on number of records: Must reindex all records it applies to |
-+------------------------------------+----------------------------------------------------------------------+
-| ACL modification                   | Depends on number of records: Must reindex all records it applies to |
-+------------------------------------+----------------------------------------------------------------------+
-| ACL deletion                       | Depends on number of records: Must reindex all records it applies to |
-+------------------------------------+----------------------------------------------------------------------+
-
-
-* If your use case involves lot of ACLs each assigned to a small subset
-  of records, this library might be for you.
-
-* If your use case involves frequently changing ACLs each assigned to a small subset
-  of records, this library might be for you.
-
-* If your use case involves setting up "default" ACLs in advance and not modifying
-  them afterwards, this library might be for you.
-
-* On the other hand if you plan to have ACLs that will change frequently and each will
-  affect a lot of records, then this library is definitely not for you.
-
 ACL anatomy
 -----------
 
@@ -119,3 +86,37 @@ Extensibility
 
 Both the description part and actor part are extensible and can use your
 own implementations.
+
+Performance
+-----------
+
++------------------------------------+----------------------------------------------------------------------+
+| Get record                         | Fast (no extra query to elasticsearch)                               |
++------------------------------------+----------------------------------------------------------------------+
+| List record                        | Fast (no extra query to elasticsearch)                               |
++------------------------------------+----------------------------------------------------------------------+
+| Create a new record                | Reasonably Fast (1 extra query to ES)                                |
++------------------------------------+----------------------------------------------------------------------+
+| Edit record                        | Reasonably Fast (1 extra query to ES)                                |
++------------------------------------+----------------------------------------------------------------------+
+| Delete record                      | Fast, no extra query                                                 |
++------------------------------------+----------------------------------------------------------------------+
+| Create a new ACL                   | Depends on number of records: Must reindex all records it applies to |
++------------------------------------+----------------------------------------------------------------------+
+| ACL modification                   | Depends on number of records: Must reindex all records it applies to |
++------------------------------------+----------------------------------------------------------------------+
+| ACL deletion                       | Depends on number of records: Must reindex all records it applies to |
++------------------------------------+----------------------------------------------------------------------+
+
+
+* If your use case involves lot of ACLs each assigned to a small subset
+  of records, this library might be for you.
+
+* If your use case involves frequently changing ACLs each assigned to a small subset
+  of records, this library might be for you.
+
+* If your use case involves setting up "default" ACLs in advance and not modifying
+  them afterwards, this library might be for you.
+
+* On the other hand if you plan to have ACLs that will change frequently and each will
+  affect a lot of records, then this library is definitely not for you.
