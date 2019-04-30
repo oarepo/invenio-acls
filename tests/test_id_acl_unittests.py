@@ -29,8 +29,8 @@ from invenio_search import current_search_client
 from invenio_explicit_acls.acls import IdACL
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
-ANOTHER_SCHEMA = 'https://localhost/schemas/records/blah-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
+ANOTHER_SCHEMA = 'records/blah-v1.0.0.json'
 
 
 def test_id_acl_get_record_acl(app, db, es, es_acl_prepare, test_users):

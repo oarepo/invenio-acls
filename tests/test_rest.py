@@ -41,7 +41,7 @@ from invenio_explicit_acls.proxies import current_explicit_acls
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.utils import schema_to_index
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
 
 
 def test_create_record_check_acl_priority(app, db, es, es_acl_prepare, test_users):
@@ -215,7 +215,7 @@ def test_rest_update_record(app, db, es, es_acl_prepare, test_users):
 
         rec1 = Record.get_record(pid.object_uuid)
         assert rec1['keywords'] == ['test']
-        assert rec1['$schema'] == RECORD_SCHEMA
+        assert rec1['$schema'] == 'https://localhost/schemas/' + RECORD_SCHEMA
 
         login(client, test_users.u2)
         response = client.put(record_url(pid), data=json.dumps({

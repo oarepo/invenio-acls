@@ -94,7 +94,11 @@ class ACL(db.Model, Timestamp):
     """Priority of the acl rule. Only the applicable rules with the highest priority get applied to the resource"""
 
     schemas = db.Column(StringArray)
-    """Set of record schemas that this ACL handles."""
+    """
+    Set of record schemas that this ACL handles. 
+    
+    Note that the schemas must be relative, for example records/record-v1.0.0.json.
+    """
 
     originator_id = db.Column(db.ForeignKey(User.id, ondelete='CASCADE', ),
                               nullable=False, index=True)

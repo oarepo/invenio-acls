@@ -25,7 +25,9 @@
 import pytest
 from helpers import create_record
 
+from invenio_explicit_acls.acls import DefaultACL
 from invenio_explicit_acls.record import SchemaEnforcingRecord
+from invenio_explicit_acls.utils import get_record_acl_enabled_schema
 
 
 def test_schema_create(app, db):
@@ -49,3 +51,20 @@ def test_update(app, db):
 
     rec.update({'title': 'blah'})
     assert rec['title'] == 'blah'
+
+
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
+
+
+def test_get_enabled_schema(app, db, test_users):
+    with db.session.begin_nested():
+        # add ACL for the record schema
+        acl = DefaultACL(name='test', schemas=[RECORD_SCHEMA],
+                         priority=0, operation='get', originator=test_users.u1)
+        db.session.add(acl)
+
+    assert 'records/record-v1.0.0.json' == get_record_acl_enabled_schema({'$schema': 'records/record-v1.0.0.json'})
+    assert 'records/record-v1.0.0.json' == get_record_acl_enabled_schema(
+        {'$schema': 'https://localhost/schemas/records/record-v1.0.0.json'})
+    assert get_record_acl_enabled_schema(
+        {'$schema': 'https://localhost/schemas/unknown/unknown-v1.0.0.json'}) is None

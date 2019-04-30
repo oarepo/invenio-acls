@@ -98,13 +98,13 @@ class ACLModelViewMixin(FieldValidatorMixin, OriginatorMixin):
     def after_model_change(self, form, model, is_created):
         """Called when ACL has been changed."""
         try:
-            current_explicit_acls.index_acl(model)
+            current_explicit_acls.reindex_acl(model)
         except:
             traceback.print_exc()
 
     def after_model_delete(self, model):
         """Called when ACL has been deleted."""
-        current_explicit_acls.unindex_acl(model)
+        current_explicit_acls.reindex_acl_remove(model)
 
 
 class ElasticsearchACLModelView(ACLModelViewMixin, ModelView):
@@ -252,6 +252,7 @@ class DefaultACLModelView(ACLModelViewMixin, ModelView):
 
 class PropertyValueModelForm(OriginatorMixin, InlineFormAdmin):
     """ModelView for ACL Property Values."""
+
     # form_base_class = FlaskForm
     form_columns = ('id', 'name', 'value', 'match_operation', 'bool_operation')
     form_extra_fields = {

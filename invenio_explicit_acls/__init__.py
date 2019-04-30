@@ -23,4 +23,3 @@
 # SOFTWARE.
 #
 """A package for handling explicit ACLs (those declared directly in Record metadata) in invenio."""
-

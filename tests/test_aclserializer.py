@@ -28,6 +28,7 @@ from flask import url_for
 from flask_login import login_user
 from helpers import create_record, get_json, login, set_identity
 from invenio_indexer.api import RecordIndexer
+from invenio_jsonschemas import current_jsonschemas
 from invenio_search import current_search_client
 from records.marshmallow import RecordSchemaV1
 
@@ -38,7 +39,7 @@ from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.serializers import ACLJSONSerializer
 from invenio_explicit_acls.utils import schema_to_index
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
 
 
 def test_aclserializer(app, db, es, es_acl_prepare, test_users):
@@ -53,7 +54,7 @@ def test_aclserializer(app, db, es, es_acl_prepare, test_users):
     RecordIndexer().index(rec)
     current_search_client.indices.flush()
 
-    assert rec['$schema'] in current_explicit_acls.enabled_schemas
+    assert current_jsonschemas.url_to_path(rec['$schema']) in current_explicit_acls.enabled_schemas
     assert list(DefaultACL.get_record_acls(rec)) != []
 
     index, doc_type = schema_to_index(RECORD_SCHEMA)

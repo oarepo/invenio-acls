@@ -31,7 +31,8 @@ from invenio_search import current_search_client
 from sqlalchemy import func
 
 from invenio_explicit_acls.models import ACL
-from invenio_explicit_acls.utils import schema_to_index
+from invenio_explicit_acls.utils import get_record_acl_enabled_schema, \
+    schema_to_index
 
 
 class DefaultACL(ACL):
@@ -56,7 +57,7 @@ class DefaultACL(ACL):
 
         :param record: Invenio record
         """
-        schema = record.get('$schema', '')
+        schema = get_record_acl_enabled_schema(record)
         if db.engine.dialect.name == 'postgresql':
             # postgresql has array field, so search in the array
             for r in DefaultACL.query.filter(DefaultACL.schemas.any(schema)).all():

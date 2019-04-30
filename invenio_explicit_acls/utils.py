@@ -31,15 +31,15 @@ from invenio_search.utils import schema_to_index as invenio_schema_to_index
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, TypeDecorator
 
+from invenio_explicit_acls.proxies import current_explicit_acls
+
 
 def schema_to_index(schema):
     """Converts schema to a pair of (index, doctype)."""
     index_names = current_search.mappings.keys()
     index, doc_type = invenio_schema_to_index(schema, index_names=index_names)
     if index is None:
-        raise AttributeError('No index found for schema %s. '
-                             'The parameter must be an url ending with something similar to '
-                             'records/record-v1.0.0.json' % schema)
+        raise AttributeError('No index found for schema %s' % schema)
     return index, doc_type
 
 
@@ -104,3 +104,16 @@ class AllowedSchemaMixin(object):
                 schema = absolute_schema
                 data['$schema'] = absolute_schema
         return schema
+
+
+def get_record_acl_enabled_schema(record):
+    """Returns a normalized schema path for record that is under ACL or None otherwise."""
+    schema = record.get('$schema')
+    if not schema:
+        return  # pragma no cover
+
+    schema = current_jsonschemas.url_to_path(schema) or schema
+    if schema not in current_explicit_acls.enabled_schemas:
+        return  # pragma no cover
+
+    return schema

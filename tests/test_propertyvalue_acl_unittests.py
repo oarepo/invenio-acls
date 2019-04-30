@@ -35,8 +35,8 @@ from invenio_explicit_acls.acls.propertyvalue_acls import BoolOperation, \
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.utils import schema_to_index
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
-ANOTHER_SCHEMA = 'https://localhost/schemas/records/blah-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
+ANOTHER_SCHEMA = 'records/blah-v1.0.0.json'
 
 
 def test_propertyvalue_acl_get_record_acl(app, db, es, es_acl_prepare, test_users):
@@ -80,7 +80,7 @@ def test_propertyvalue_acl_get_record_match_acl(app, db, es, es_acl_prepare, tes
         acl = PropertyValueACL(name='test', schemas=[RECORD_SCHEMA],
                                priority=0, operation='get', originator=test_users.u1)
         propval = PropertyValue(name='title', value='hello', acl=acl, originator=test_users.u1,
-                                match_operation=MatchOperation.match.value)
+                                match_operation=MatchOperation.match)
 
         db.session.add(acl)
         db.session.add(propval)
@@ -88,7 +88,7 @@ def test_propertyvalue_acl_get_record_match_acl(app, db, es, es_acl_prepare, tes
         acl2 = PropertyValueACL(name='test 2', schemas=[RECORD_SCHEMA],
                                 priority=0, operation='get', originator=test_users.u1)
         propval2 = PropertyValue(name='title', value='goodbye', acl=acl2, originator=test_users.u1,
-                                 match_operation=MatchOperation.match.value)
+                                 match_operation=MatchOperation.match)
         db.session.add(acl2)
         db.session.add(propval2)
 
@@ -166,9 +166,9 @@ def test_multi_propertyvalue_acl_get_matching_resources(app, db, es, es_acl_prep
         aclAND = PropertyValueACL(name='TestAND', schemas=[RECORD_SCHEMA],
                                   priority=0, operation='get', originator=test_users.u1)
         propval1 = PropertyValue(name='keywords', value='blah', acl=aclAND, originator=test_users.u1,
-                                 bool_operation=BoolOperation.must.value)
+                                 bool_operation=BoolOperation.must)
         propval2 = PropertyValue(name='title', value='foo', acl=aclAND, originator=test_users.u1,
-                                 bool_operation=BoolOperation.must.value)
+                                 bool_operation=BoolOperation.must)
 
         db.session.add(aclAND)
         db.session.add(propval1)
@@ -177,11 +177,11 @@ def test_multi_propertyvalue_acl_get_matching_resources(app, db, es, es_acl_prep
         aclANDnot = PropertyValueACL(name='TestAND+NOT', schemas=[RECORD_SCHEMA],
                                      priority=0, operation='get', originator=test_users.u1)
         propval3 = PropertyValue(name='title', value='bar', acl=aclANDnot, originator=test_users.u1,
-                                 bool_operation=BoolOperation.must.value)
+                                 bool_operation=BoolOperation.must)
         propval4 = PropertyValue(name='keywords', value='blah', acl=aclANDnot, originator=test_users.u1,
-                                 bool_operation=BoolOperation.must.value)
+                                 bool_operation=BoolOperation.must)
         propval5 = PropertyValue(name='keywords', value='test', acl=aclANDnot, originator=test_users.u1,
-                                 bool_operation=BoolOperation.mustNot.value)
+                                 bool_operation=BoolOperation.mustNot)
 
         db.session.add(aclANDnot)
         db.session.add(propval3)
@@ -271,7 +271,7 @@ def test_propertyvalue_acl_repr(app, db, es, es_acl_prepare, test_users):
         db.session.add(acl)
         db.session.add(propval)
 
-    assert repr(acl) == "\"test\" (%s) on schemas ['https://localhost/schemas/records/record-v1.0.0.json']" % acl.id
+    assert repr(acl) == "\"test\" (%s) on schemas ['records/record-v1.0.0.json']" % acl.id
 
 
 def test_no_es_prepared_index(app, db, es, test_users):
@@ -287,6 +287,6 @@ def test_propertyvalue_str(app, db, es, es_acl_prepare, test_users):
         acl = PropertyValueACL(name='test', schemas=[RECORD_SCHEMA],
                                priority=0, operation='get', originator=test_users.u1)
         propval = PropertyValue(name='keywords', value='test', acl=acl, originator=test_users.u1,
-                                bool_operation=BoolOperation.must.value,
-                                match_operation=MatchOperation.term.value)
-        assert str(propval) == 'must: term(keywords=test)'
+                                bool_operation=BoolOperation.must,
+                                match_operation=MatchOperation.term)
+        assert str(propval) == 'BoolOperation.must: MatchOperation.term(keywords=test)'

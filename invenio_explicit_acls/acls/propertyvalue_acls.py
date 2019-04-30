@@ -45,7 +45,7 @@ class MatchOperation(enum.Enum):
 
 
 class BoolOperation(enum.Enum):
-    """ The ES Bool filter query type. """
+    """The ES Bool filter query type."""
 
     must = 'must'
     """All properties of this type must match. The equivalent of AND."""
@@ -58,7 +58,7 @@ class BoolOperation(enum.Enum):
 
 
 class PropertyValue(db.Model, Timestamp):
-    """ Property and Value match to be used in Property based ACL queries """
+    """Property and Value match to be used in Property based ACL queries."""
 
     __tablename__ = 'explicit_acls_propertyvalue'
 
@@ -83,10 +83,10 @@ class PropertyValue(db.Model, Timestamp):
     """Value of the property in elasticsearch."""
 
     match_operation = db.Column(ChoiceType(MatchOperation, impl=db.String(length=10)),
-                                default=MatchOperation.term.value)
+                                default=MatchOperation.term)
     """Property value matching mode: can be either term or match."""
 
-    bool_operation = db.Column(ChoiceType(BoolOperation, impl=db.String(length=10)), default=BoolOperation.must.value)
+    bool_operation = db.Column(ChoiceType(BoolOperation, impl=db.String(length=10)), default=BoolOperation.must)
     """Bool filter operation mode this property belongs to."""
 
     originator_id = db.Column(db.ForeignKey(User.id, ondelete='CASCADE', ),
@@ -97,6 +97,7 @@ class PropertyValue(db.Model, Timestamp):
     """The originator (person that last time modified the Property)"""
 
     def __str__(self):
+        """Returns string representation of the class."""
         return '%s: %s(%s=%s)' % (self.bool_operation, self.match_operation, self.name, self.value, )
 
 
@@ -123,18 +124,13 @@ class PropertyValueACL(ESACLMixin, ACL):
         boolProps = {}
 
         for prop in self.property_values:  # type: PropertyValue
-            try:
-                boolProps[prop.bool_operation].append({
-                    prop.match_operation: {
+            boolProps.setdefault(prop.bool_operation.value, []).append(
+                {
+                    prop.match_operation.value: {
                         prop.name: prop.value
                     }
-                })
-            except KeyError:
-                boolProps[prop.bool_operation] = [{
-                    prop.match_operation: {
-                        prop.name: prop.value
-                    }
-                }]
+                }
+            )
 
         return {
             'bool': boolProps

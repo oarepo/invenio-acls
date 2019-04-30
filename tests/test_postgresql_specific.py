@@ -25,7 +25,7 @@
 from invenio_explicit_acls.acls import DefaultACL
 from invenio_explicit_acls.proxies import current_explicit_acls
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
 
 
 def test_empty_database_queries(app, db, es, es_acl_prepare, test_users):

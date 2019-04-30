@@ -23,11 +23,10 @@
 # SOFTWARE.
 #
 """Signal called to add cached ACLs to ES data."""
-from invenio_indexer.signals import before_record_index
+from invenio_jsonschemas import current_jsonschemas
 
-from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.proxies import current_explicit_acls
-from invenio_explicit_acls.utils import schema_to_index
+from invenio_explicit_acls.utils import get_record_acl_enabled_schema
 
 
 def add_acls(app, json=None, index=None, record=None, doc_type=None, **kwargs):
@@ -35,14 +34,11 @@ def add_acls(app, json=None, index=None, record=None, doc_type=None, **kwargs):
     # prevent injection of explicit acls even in case of a schema that
     # is not enabled and when marshmallow is circumvented
     if '_invenio_explicit_acls' in json:
-        del json['_invenio_explicit_acls']      # pragma no cover
+        del json['_invenio_explicit_acls']  # pragma no cover
 
-    schema = record.get('$schema')
+    schema = get_record_acl_enabled_schema(record)
     if not schema:
-        return      # pragma no cover
-
-    if schema not in current_explicit_acls.enabled_schemas:
-        return      # pragma no cover
+        return  # pragma no cover
 
     matching_acls = current_explicit_acls.get_record_acls(record)
     json['_invenio_explicit_acls'] = current_explicit_acls.serialize_record_acls(matching_acls)

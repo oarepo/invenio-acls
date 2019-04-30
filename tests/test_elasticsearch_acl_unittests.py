@@ -35,13 +35,15 @@ from invenio_explicit_acls.acls import ElasticsearchACL
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.utils import schema_to_index
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
-ANOTHER_SCHEMA = 'https://localhost/schemas/records/blah-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
+ANOTHER_SCHEMA = 'records/blah-v1.0.0.json'
 
 
 def test_elasticsearch_acl_get_record_acl(app, db, es, es_acl_prepare, test_users):
-    pid, record = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['blah']}, clz=SchemaEnforcingRecord)
-    pid1, record1 = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['test']}, clz=SchemaEnforcingRecord)
+    pid, record = create_record({'$schema': 'https://localhost/schemas/' + RECORD_SCHEMA, 'keywords': ['blah']},
+                                clz=SchemaEnforcingRecord)
+    pid1, record1 = create_record({'$schema': 'https://localhost/schemas/' + RECORD_SCHEMA, 'keywords': ['test']},
+                                  clz=SchemaEnforcingRecord)
 
     with db.session.begin_nested():
         acl = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
@@ -59,9 +61,7 @@ def test_elasticsearch_acl_get_record_acl(app, db, es, es_acl_prepare, test_user
 
     acl.update()
     with pytest.raises(AttributeError,
-                       match='No index found for schema https://localhost/schemas/records/blah-v1.0.0.json. '
-                             'The parameter must be an url ending with something similar '
-                             'to records/record-v1.0.0.json'):
+                       match='No index found for schema records/blah-v1.0.0.json'):
         acl2.update()
 
     acls = list(ElasticsearchACL.get_record_acls(record))
@@ -183,7 +183,7 @@ def test_elasticsearch_acl_repr(app, db, es, es_acl_prepare, test_users):
                                    'keywords': 'test'
                                }})
         db.session.add(acl)
-    assert repr(acl) == "\"test\" (%s) on schemas ['https://localhost/schemas/records/record-v1.0.0.json']" % acl.id
+    assert repr(acl) == "\"test\" (%s) on schemas ['records/record-v1.0.0.json']" % acl.id
 
 
 def test_no_es_prepared_index(app, db, es, test_users):

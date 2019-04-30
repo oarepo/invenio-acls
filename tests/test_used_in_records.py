@@ -34,8 +34,8 @@ from invenio_explicit_acls.actors import SystemRoleActor
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.utils import schema_to_index
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
-ANOTHER_SCHEMA = 'https://localhost/schemas/records/blah-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
+ANOTHER_SCHEMA = 'records/blah-v1.0.0.json'
 
 
 def test_used_in_records(app, db, es, es_acl_prepare, test_users):

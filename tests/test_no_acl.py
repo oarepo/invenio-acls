@@ -36,7 +36,7 @@ from invenio_explicit_acls.acls import DefaultACL
 from invenio_explicit_acls.actors import UserActor
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 
-RECORD_SCHEMA = 'https://localhost/schemas/records/record-v1.0.0.json'
+RECORD_SCHEMA = 'records/record-v1.0.0.json'
 
 
 @pytest.mark.parametrize('app', [dict(
@@ -73,7 +73,7 @@ def test_get_record_without_enabled_acl(app, db, es):
     # get it directly from ES
     res = get_from_es(pid)['_source']
     assert res['control_number'] == pid.pid_value
-    assert res['$schema'] == RECORD_SCHEMA
+    assert res['$schema'] == 'https://localhost/schemas/' + RECORD_SCHEMA
 
 
 @pytest.mark.parametrize('app', [dict(
@@ -126,7 +126,7 @@ def test_get_record_no_acls_anonymous(app, db, es, es_acl_prepare, test_users):
     # get it directly from ES
     res = get_from_es(pid)['_source']
     assert res['control_number'] == pid.pid_value
-    assert res['$schema'] == RECORD_SCHEMA
+    assert res['$schema'] == 'https://localhost/schemas/' + RECORD_SCHEMA
     assert '_invenio_explicit_acls' in res
 
 
@@ -180,7 +180,7 @@ def test_create_record_no_acls_authenticated(app, db, es, es_acl_prepare, test_u
         res = get_from_es(pid)['_source']
 
         assert res['control_number'] == pid.pid_value
-        assert res['$schema'] == RECORD_SCHEMA
+        assert res['$schema'] == 'https://localhost/schemas/' + RECORD_SCHEMA
         assert '_invenio_explicit_acls' in res
 
         # still can not get it
