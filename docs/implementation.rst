@@ -198,3 +198,89 @@ To be double protected on the REST level, extend your metadata marshmallow with
 `invenio_explicit_acls.marshmallow.SchemaEnforcingMixin` that performs the same checks
 as above before the record is converted to its internal form.
 
+----------
+ACL update
+----------
+
+Whenever ACL is updated, we need to modify the ACL field of records in the target index.
+Unfortunately this can not be done effectively with ES update-by-query call as Invenio
+depends on external versioning in Elasticsearch that would get broken by update-by-query.
+That's why the following code gets called (defined in `invenio_explicit_acls.tasks`):
+
+.. code-block:: python
+
+    @shared_task(ignore_result=True)
+    def acl_changed_reindex(acl_id):
+        """
+        ACL has been changed so reindex all the documents in the given index.
+
+        :param acl_id:   id of ACL instance
+        """
+        logger.info('Reindexing started for ACL=%s', acl_id)
+
+
+At first we remember the current time. It will be used later to handle records
+that are no longer covered by the ACL. We also flush the index to get the following
+queries up to date:
+
+
+.. code-block:: python
+
+        timestamp = datetime.datetime.now().astimezone().isoformat()
+
+        acl = ACL.query.filter_by(id=acl_id).one_or_none()
+
+        if not acl:
+            # deleted in the meanwhile, so just return
+            return          # pragma no cover
+
+        # make sure all indices are flushed so that no resource is obsolete in index
+        for schema in acl.schemas:
+            current_search_client.indices.flush(index=schema_to_index(schema)[0])
+
+        indexer = RecordIndexer()
+        updated_count = 0
+        removed_count = 0
+
+
+For each of the matching records we reindex them. This will propagate the changes
+made to the ACL and will also update the `timestamp` property on ACL field.
+
+.. code-block:: python
+
+
+        for id in acl.get_matching_resources():
+            try:
+                rec = Record.get_record(id)
+            except:     # pragma no cover
+                # record removed in the meanwhile by another thread/process,
+                # indexer should have been called to remove it from ES
+                # won't test this so pragma no cover
+                continue
+            try:
+                indexer.index(rec)
+                updated_count += 1
+            except Exception as e:  # pragma no cover
+                logger.exception('Error indexing ACL for resource %s: %s', id, e)
+
+Finally we select all the records that were covered by the ACL and whose `timestamp`
+property is older than the time of the beginning of the indexing. This will reindex
+records that will no longer be covered by the ACL:
+
+.. code-block:: python
+
+        # reindex the resources those were indexed by this acl but no longer should be
+        for id in acl.used_in_records(older_than_timestamp=timestamp):
+            try:
+                rec = Record.get_record(id)
+            except NoResultFound:                           # pragma no cover
+                continue
+            except:                                         # pragma no cover
+                logger.exception('Unexpected exception in record reindexing')
+                continue
+
+            try:
+                removed_count += 1
+                indexer.index(rec)
+            except:     # pragma no cover
+                logger.exception('Error indexing ACL for obsolete resource %s', id)
