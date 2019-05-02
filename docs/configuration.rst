@@ -132,4 +132,6 @@ type:
     # run in bash
     invenio explicit-acls prepare <schema-url>
 
+schema-url is a relative (short) schema name, for example records/record-v1.0.0.json
+
 9. Restart the server and you are ready to go.

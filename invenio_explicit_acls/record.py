@@ -63,6 +63,18 @@ class SchemaKeepingRecordMixin(AllowedSchemaMixin):
             if schema not in cls.ALLOWED_SCHEMAS:
                 raise AttributeError('Schema %s not in allowed schemas %s' % (data['$schema'], cls.ALLOWED_SCHEMAS))
 
+    def __setitem__(self, key, value):
+        """Dict's setitem."""
+        if key == '$schema':
+            if value not in self.ALLOWED_SCHEMAS:
+                raise AttributeError('Schema %s not in allowed schemas %s' % (value, self.ALLOWED_SCHEMAS))
+        return super().__setitem__(key, value)
+
+    def __delitem__(self, key):
+        """Dict's delitem."""
+        if key == '$schema':
+            raise AttributeError('Schema can not be deleted')
+
     @classmethod
     def create(cls, data, id_=None, **kwargs):
         """

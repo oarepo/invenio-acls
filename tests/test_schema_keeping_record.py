@@ -53,6 +53,18 @@ def test_update(app, db):
     assert rec['title'] == 'blah'
 
 
+def test_set(app, db):
+    pid, rec = create_record({}, clz=SchemaEnforcingRecord)
+    with pytest.raises(AttributeError):
+        rec['$schema'] = 'http://blah'
+
+
+def test_delete(app, db):
+    pid, rec = create_record({}, clz=SchemaEnforcingRecord)
+    with pytest.raises(AttributeError):
+        del rec['$schema']
+
+
 RECORD_SCHEMA = 'records/record-v1.0.0.json'
 
 

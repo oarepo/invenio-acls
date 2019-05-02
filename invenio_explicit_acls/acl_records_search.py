@@ -77,7 +77,7 @@ class ACLDefaultFilter:
         operations = _make_list_default(operation, self.operations)
 
         # for each registered Actor class get its ES query
-        assert not not current_user, 'Current_user must be set in order to create ACL query'
+        assert current_user is not None, 'Current_user must be set in order to create ACL query'
         for actor_model in current_explicit_acls.actor_models:  # type: Actor
             q = actor_model.get_elasticsearch_query(current_user)
             if q:
