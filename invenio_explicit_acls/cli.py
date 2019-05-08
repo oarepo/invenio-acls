@@ -24,13 +24,16 @@
 #
 """Command-line client extension."""
 
+import json
+import sys
+
 import click
 from flask import cli
 from invenio_db import db
 from invenio_indexer.api import RecordIndexer
 from invenio_jsonschemas import current_jsonschemas
+from invenio_records import Record
 from invenio_records.models import RecordMetadata
-from invenio_search import current_search
 from sqlalchemy import cast
 
 from invenio_explicit_acls.models import ACL
@@ -104,3 +107,54 @@ def full_reindex(verbose, records):
         print('Running bulk indexer on %s records' % len(uuids))
     RecordIndexer(version_type=None).process_bulk_queue(
         es_bulk_kwargs={'raise_on_error': False})
+
+
+@explicit_acls.command()
+@click.argument('record')
+@cli.with_appcontext
+def explain(record):
+    """
+    Explains which ACLs will be applied to a record and what the added ACL property will look like.
+
+    :param record a path to a file containing record metadata or '-' to read the metadata from stdin.
+    """
+    class Model:
+        def __init__(self):
+            self.id = 'record-id'
+
+    with open(record, 'r') if record is not "-" else sys.stdin as f:
+        record_metadata = json.load(f)
+        if '$schema' not in record_metadata:
+            print('Please add $schema to record metadata')
+            return
+        invenio_record = Record(record_metadata)
+        invenio_record.model = Model()
+
+        applicable_acls = []
+        for acl in current_explicit_acls.acl_models:
+            applicable_acls.extend(acl.get_record_acls(invenio_record))
+        if not applicable_acls:
+            print('The record is not matched by any ACLs')
+            return
+
+        print('The following ACLs match the record:')
+        for acl in applicable_acls:
+            print('    %s with priority of %s' % (acl, acl.priority))
+            for actor in acl.actors:
+                print('        ', actor)
+        print()
+
+        matching_acls = list(current_explicit_acls.get_record_acls(invenio_record))
+
+        print('Of these, the following ACLs will be used (have the highest priority):')
+        for acl in matching_acls:
+            print('    ', acl)
+            for actor in acl.actors:
+                print('        ', actor)
+
+        print()
+
+        print('The ACLs will get serialized to the following element')
+        print(json.dumps({
+            '_invenio_explicit_acls': current_explicit_acls.serialize_record_acls(matching_acls)
+        }, indent=4))

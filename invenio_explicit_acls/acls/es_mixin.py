@@ -88,6 +88,9 @@ class ESACLMixin(object):
             )['hits']['hits']:
                 yield clz.query.get(r['_id'])
         except elasticsearch.TransportError as e:
+            logger.error('Error running ACL query on index %s, doctype %s, query %s',
+                         clz.get_acl_index_name(index), current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
+                         query)
             if e.status_code == 404:
                 raise RuntimeError('Explicit ACLs were not prepared for the given schema. '
                                    'Please run invenio explicit-acls prepare %s' % record.get('$schema', ''))
