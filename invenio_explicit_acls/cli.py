@@ -28,8 +28,9 @@ import json
 import sys
 
 import click
-from flask import cli
+from flask import cli, current_app
 from invenio_db import db
+from invenio_indexer import current_record_to_index
 from invenio_indexer.api import RecordIndexer
 from invenio_jsonschemas import current_jsonschemas
 from invenio_records import Record
@@ -111,13 +112,15 @@ def full_reindex(verbose, records):
 
 @explicit_acls.command()
 @click.argument('record')
+@click.option('--debug/--no-debug', default=False)
 @cli.with_appcontext
-def explain(record):
+def explain(record, debug):
     """
     Explains which ACLs will be applied to a record and what the added ACL property will look like.
 
     :param record a path to a file containing record metadata or '-' to read the metadata from stdin.
     """
+
     class Model:
         def __init__(self):
             self.id = 'record-id'
@@ -130,19 +133,48 @@ def explain(record):
         invenio_record = Record(record_metadata)
         invenio_record.model = Model()
 
+        schema = current_jsonschemas.url_to_path(record_metadata['$schema'])
+
+        print('Possible ACLs')
+        for acl in ACL.query.all():
+            if schema in acl.schemas:
+                print('    ', type(acl).__name__, acl)
+
+                for k in dir(acl):
+                    if k.startswith('_'): continue
+                    if k in ('metadata', 'query'): continue
+                    val = getattr(acl, k)
+                    if not callable(val) and val:
+                        if isinstance(val, list):
+                            print('        %s = %s' % (k, [str(x) for x in val]))
+                        else:
+                            print('        %s = %s' % (k, val))
+        print()
+
         applicable_acls = []
         for acl in current_explicit_acls.acl_models:
-            applicable_acls.extend(acl.get_record_acls(invenio_record))
+            print('Checking ACLs of type', acl)
+            if debug and hasattr(acl, '_get_percolate_query'):
+                index, _doc_type = current_record_to_index(invenio_record)
+                index = acl.get_acl_index_name(index)
+                doc_type = current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']
+                print('   Will run percolate query on index %s and doc_type %s:' % (index, doc_type))
+                print(
+                    '\n'.join(
+                        '        ' + x for x in json.dumps(acl._get_percolate_query(invenio_record), indent=4).split('\n')
+                    )
+                )
+            found_acls = list(acl.get_record_acls(invenio_record))
+            for acl in found_acls:
+                print('    found match: %s with priority of %s' % (acl, acl.priority))
+                for actor in acl.actors:
+                    print('        ', actor)
+            applicable_acls.extend(found_acls)
+        print()
+
         if not applicable_acls:
             print('The record is not matched by any ACLs')
             return
-
-        print('The following ACLs match the record:')
-        for acl in applicable_acls:
-            print('    %s with priority of %s' % (acl, acl.priority))
-            for actor in acl.actors:
-                print('        ', actor)
-        print()
 
         matching_acls = list(current_explicit_acls.get_record_acls(invenio_record))
 

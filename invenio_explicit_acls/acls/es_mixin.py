@@ -58,25 +58,7 @@ class ESACLMixin(object):
         """
         # run percolate query on the index record's index
 
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "percolate": {
-                                "field": "__acl_record_selector",
-                                "document": dict(record)
-                            }
-                        },
-                        {
-                            "term": {
-                                "__acl_record_type": clz.__mapper_args__['polymorphic_identity']
-                            }
-                        }
-                    ]
-                }
-            }
-        }
+        query = clz._get_percolate_query(record)
         if logger.isEnabledFor(logging.DEBUG) <= logging.DEBUG:
             logger.debug('get_material_acls: query %s', json.dumps(query, indent=4, ensure_ascii=False))
         index, _doc_type = current_record_to_index(record)
@@ -96,6 +78,29 @@ class ESACLMixin(object):
                                    'Please run invenio explicit-acls prepare %s' % record.get('$schema', ''))
             else:  # pragma: no cover
                 raise
+
+    @classmethod
+    def _get_percolate_query(cls, record):
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "percolate": {
+                                "field": "__acl_record_selector",
+                                "document": dict(record)
+                            }
+                        },
+                        {
+                            "term": {
+                                "__acl_record_type": cls.__mapper_args__['polymorphic_identity']
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        return query
 
     @classmethod
     def prepare_schema_acls(self, schema):
