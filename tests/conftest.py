@@ -140,6 +140,10 @@ def app(request, search_class):
         RECORDS_REST_DEFAULT_UPDATE_PERMISSION_FACTORY=None,
         RECORDS_REST_DEFAULT_SEARCH_INDEX=search_class.Meta.index,
         SERVER_NAME='localhost:5000',
+        CELERY_ALWAYS_EAGER=True,
+        CELERY_RESULT_BACKEND='cache',
+        CELERY_CACHE_BACKEND='memory',
+        CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
         SQLALCHEMY_DATABASE_URI=os.environ.get(
             'SQLALCHEMY_DATABASE_URI', 'sqlite:///test.db'
         ),

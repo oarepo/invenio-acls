@@ -86,4 +86,3 @@ def test_get_enabled_schema(app, db, test_users):
         {'$schema': 'https://localhost/schemas/records/record-v1.0.0.json'})
     assert get_record_acl_enabled_schema(
         {'$schema': 'https://localhost/schemas/unknown/unknown-v1.0.0.json'}) is None
-

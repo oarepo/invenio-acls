@@ -29,6 +29,8 @@ set -e -o pipefail
 test -d /tmp/workdir && rm -r /tmp/workdir
 
 rsync -a --exclude __pycache__ /invenio-explicit-acls/ /tmp/workdir
+apt install rabbitmq-server
+/etc/init.d/rabbitmq-server start
 
 cd /tmp/workdir
 
