@@ -68,10 +68,10 @@ class SchemaKeepingRecordMixin(AllowedSchemaMixin):
         if key == '$schema':
             self._prepare_schemas()
             if value not in self.ALLOWED_SCHEMAS:
-                absolute_value = current_jsonschemas.path_to_url(value)
-                if absolute_value not in self.ALLOWED_SCHEMAS:
+                value = current_jsonschemas.path_to_url(value)
+                if value not in self.ALLOWED_SCHEMAS:
                     raise AttributeError('Schema %s not in allowed schemas %s' % (value, self.ALLOWED_SCHEMAS))
-                value = absolute_value
+            value = convert_relative_schema_to_absolute(value)
         return super().__setitem__(key, value)
 
     def __delitem__(self, key):

@@ -58,6 +58,12 @@ def test_set(app, db):
     with pytest.raises(AttributeError):
         rec['$schema'] = 'http://blah'
 
+    # should pass as this is an allowed schema
+    rec['$schema'] = 'records/record-v1.0.0.json'
+
+    # should pass as absolute path is an allowed schema as well
+    rec['$schema'] = 'https://localhost/schemas/records/record-v1.0.0.json'
+
 
 def test_delete(app, db):
     pid, rec = create_record({}, clz=SchemaEnforcingRecord)
@@ -80,3 +86,4 @@ def test_get_enabled_schema(app, db, test_users):
         {'$schema': 'https://localhost/schemas/records/record-v1.0.0.json'})
     assert get_record_acl_enabled_schema(
         {'$schema': 'https://localhost/schemas/unknown/unknown-v1.0.0.json'}) is None
+
