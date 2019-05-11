@@ -29,7 +29,8 @@ import copy
 import json
 import uuid
 
-from flask import url_for
+import flask
+from flask import current_app, url_for
 from flask_principal import Identity, identity_changed
 from invenio_access import authenticated_user
 from invenio_db import db
@@ -136,8 +137,9 @@ def clear_timestamp(x):
     return x
 
 
-def set_identity(app, u):
+def set_identity(u):
     """Sets identity in flask.g to the user."""
     identity = Identity(u.id)
     identity.provides.add(authenticated_user)
-    identity_changed.send(app, identity=identity)
+    identity_changed.send(current_app._get_current_object(), identity=identity)
+    assert flask.g.identity.id == u.id

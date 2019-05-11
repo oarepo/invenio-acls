@@ -29,7 +29,7 @@ from flask import current_app
 from flask_principal import Identity, identity_changed
 from flask_security import AnonymousUser
 from helpers import set_identity
-from invenio_access import authenticated_user
+from invenio_access import any_user, authenticated_user
 
 from invenio_explicit_acls.actors import SystemRoleActor
 
@@ -57,19 +57,20 @@ def test_get_elasticsearch_representation(app, db, es, test_users):
 def test_get_elasticsearch_query(app, db, es, test_users):
     with current_app.test_request_context():
         assert Term(_invenio_explicit_acls__system_role='any_user') == SystemRoleActor.get_elasticsearch_query(
-            AnonymousUser())
+            AnonymousUser(), {})
 
-        set_identity(app, test_users.u1)
+        set_identity(test_users.u1)
         assert Terms(_invenio_explicit_acls__system_role=['any_user',
-                                                          'authenticated_user']) == SystemRoleActor.get_elasticsearch_query(
-            test_users.u1)
+                                                          'authenticated_user']) == \
+               SystemRoleActor.get_elasticsearch_query(test_users.u1, {})
 
         # faked user - different identity in flask.g than user
-        assert SystemRoleActor.get_elasticsearch_query(test_users.u2) is None
+        with pytest.raises(AttributeError, message='user whose id does not match Identity in flask.g'):
+            SystemRoleActor.get_elasticsearch_query(test_users.u2, {})
 
-        set_identity(app, test_users.u2)
+        set_identity(test_users.u2)
         assert Terms(_invenio_explicit_acls__system_role=['any_user', 'authenticated_user']) == \
-               SystemRoleActor.get_elasticsearch_query(test_users.u2)
+               SystemRoleActor.get_elasticsearch_query(test_users.u2, {})
 
 
 def test_user_matches(app, db, es, test_users):
@@ -78,20 +79,21 @@ def test_user_matches(app, db, es, test_users):
         db.session.add(actor)
 
     with current_app.test_request_context():
-        assert not actor.user_matches(AnonymousUser())
+        assert not actor.user_matches(AnonymousUser(), {'system_roles': [any_user]})
 
-        set_identity(app, test_users.u1)
-        assert actor.user_matches(test_users.u1)
+        set_identity(test_users.u1)
+        assert actor.user_matches(test_users.u1, {})
 
         # faked user - different identity in flask.g than user
-        set_identity(app, test_users.u1)
-        assert not actor.user_matches(test_users.u2)
+        set_identity(test_users.u1)
+        with pytest.raises(AttributeError):
+            actor.user_matches(test_users.u2, {})
 
-        set_identity(app, test_users.u2)
-        assert actor.user_matches(test_users.u2)
+        set_identity(test_users.u2)
+        assert actor.user_matches(test_users.u2, {})
 
-        set_identity(app, test_users.u3)
-        assert actor.user_matches(test_users.u3)
+        set_identity(test_users.u3)
+        assert actor.user_matches(test_users.u3, {})
 
 
 def test_get_matching_users(app, db, es, test_users):

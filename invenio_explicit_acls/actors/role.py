@@ -23,7 +23,7 @@
 # SOFTWARE.
 #
 """Actor matching invenio roles."""
-from typing import Iterable
+from typing import Dict, Iterable
 
 from elasticsearch_dsl import Q
 from invenio_accounts.models import Role, User
@@ -87,7 +87,7 @@ class RoleActor(Actor):
         return list(set([x.id for x in self.roles] + (others or [])))
 
     @classmethod
-    def get_elasticsearch_query(clz, user: User) -> Q or None:
+    def get_elasticsearch_query(clz, user: User, context: Dict) -> Q or None:
         """
         Returns elasticsearch query (elasticsearch_dls.Q) for the ACL.
 
@@ -95,17 +95,19 @@ class RoleActor(Actor):
         _invenio_explicit_acls
 
         :param user:  the user to be checked
+        :param context:  any extra context carrying information about the user
         :return:      elasticsearch query that enforces the user
         """
         if user.is_authenticated:
             return Q('terms', _invenio_explicit_acls__role=[x.id for x in user.roles])
         return None
 
-    def user_matches(self, user: User) -> bool:
+    def user_matches(self, user: User, context: Dict) -> bool:
         """
         Checks if a user is allowed to perform any operation according to the ACL.
 
         :param user: user being checked against the ACL
+        :param context:  any extra context carrying information about the user
         """
         role_ids = set(x.id for x in self.roles)
         for role in user.roles:

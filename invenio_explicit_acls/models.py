@@ -27,7 +27,7 @@ import json
 import os
 import uuid
 from abc import abstractmethod
-from typing import Iterable, Union
+from typing import Dict, Iterable, Union
 
 import elasticsearch
 from elasticsearch_dsl import Q
@@ -307,24 +307,26 @@ class Actor(db.Model, Timestamp):
 
     @classmethod
     @abstractmethod
-    def get_elasticsearch_query(clz, user: Union[User, AnonymousUser]) -> Q or None:
+    def get_elasticsearch_query(clz, user: Union[User, AnonymousUser], context: Dict) -> Q or None:
         """
         Returns elasticsearch query (elasticsearch_dls.Q) for the ACL.
 
         This is the counterpart of get_elasticsearch_representation and will be placed inside "nested" query
         _invenio_explicit_acls
 
-        :param user:  the user to be checked
-        :return:      elasticsearch query that enforces the user
+        :param user:     the user to be checked
+        :param context:  any extra context carrying information about the user
+        :return:         elasticsearch query that enforces the user
         """
         raise NotImplementedError("Must be implemented")
 
     @abstractmethod
-    def user_matches(self, user: Union[User, AnonymousUser]) -> bool:
+    def user_matches(self, user: Union[User, AnonymousUser], context: Dict) -> bool:
         """
         Checks if a user is allowed to perform any operation according to the ACL.
 
         :param user: user being checked against the ACL
+        :param context:  any extra context carrying information about the user
         """
         raise NotImplementedError('Must be implemented')
 

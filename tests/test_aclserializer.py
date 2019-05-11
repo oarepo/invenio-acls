@@ -64,7 +64,7 @@ def test_aclserializer(app, db, es, es_acl_prepare, test_users):
 
     with app.test_request_context():
         login_user(test_users.u1)
-        set_identity(app, test_users.u1)
+        set_identity(test_users.u1)
 
         acljson_serializer = ACLJSONSerializer(RecordSchemaV1, acl_rest_endpoint='recid', replace_refs=True)
         serialized = json.loads(acljson_serializer.serialize(pid, rec))

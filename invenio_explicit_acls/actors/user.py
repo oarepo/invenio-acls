@@ -23,7 +23,7 @@
 # SOFTWARE.
 #
 """A modul that defines user actor."""
-from typing import Iterable, Union
+from typing import Dict, Iterable, Union
 
 from elasticsearch_dsl import Q
 from elasticsearch_dsl.query import MatchAll, Term
@@ -90,7 +90,7 @@ class UserActor(Actor):
         return list(set([x.id for x in self.users] + (another or [])))
 
     @classmethod
-    def get_elasticsearch_query(clz, user: Union[User, AnonymousUser]) -> Q or None:
+    def get_elasticsearch_query(clz, user: Union[User, AnonymousUser], context: Dict) -> Q or None:
         """
         Returns elasticsearch query (elasticsearch_dls.Q) for the ACL.
 
@@ -98,6 +98,7 @@ class UserActor(Actor):
         _invenio_explicit_acls
 
         :param user:  the user to be checked
+        :param context:  any extra context carrying information about the user
         :return:      elasticsearch query that enforces the user
         """
         if user.is_authenticated:
@@ -105,11 +106,12 @@ class UserActor(Actor):
         else:
             return None
 
-    def user_matches(self, user: Union[User, AnonymousUser]) -> bool:
+    def user_matches(self, user: Union[User, AnonymousUser], context: Dict) -> bool:
         """
         Checks if a user is allowed to perform any operation according to the ACL.
 
         :param user: user being checked against the ACL
+        :param context:  any extra context carrying information about the user
         """
         if user.is_anonymous:
             return False

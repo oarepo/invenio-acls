@@ -67,22 +67,25 @@ class ACLDefaultFilter:
         """
         self.operations = _make_list_default(operation, ACLDefaultFilter.operations)
 
-    def create_query(self, operation=None, user=None):
+    def create_query(self, operation=None, user=None, context=None):
         """
         Creates a ES query that matches current user against ACL Actors cached on the resource having the given operation.
 
         :param operation:   same meaning as in the constructor, if not used value from the constructor is taken
+        :param user:        user to test
+        :param context:     extra context if user is set. See SystemRoleActor.get_elasticsearch_query for more info
         :return:            ES "bool" query
         """
         actor_query_part = []
         operations = _make_list_default(operation, self.operations)
 
+        context = context or dict()
+
         # for each registered Actor class get its ES query
         tested_user = user or current_user
-        print(tested_user)
         assert tested_user is not None, 'Current_user must be set in order to create ACL query'
         for actor_model in current_explicit_acls.actor_models:  # type: Actor
-            q = actor_model.get_elasticsearch_query(tested_user)
+            q = actor_model.get_elasticsearch_query(tested_user, context)
             if q:
                 actor_query_part.append(q)
 
@@ -126,7 +129,7 @@ class ACLDefaultFilter:
 class ACLRecordsSearch(RecordsSearch):
     """ACL enabled RecordsSearch."""
 
-    def __init__(self, operation=None, acl_filter=None, user=None, **kwargs):
+    def __init__(self, operation=None, acl_filter=None, user=None, context=None, **kwargs):
         """
         Creates a new instance.
 
@@ -134,13 +137,14 @@ class ACLRecordsSearch(RecordsSearch):
         :param acl_filter: an instance of a class with a method create_query(self, operation=None, user=None).
                            if not set, ACLDefaultFilter is used
         :param user:       the user for whom search will be performed. If not set, flask's current_user is used.
+        :param context:    any context that will be passed to Actors
         :param kwargs:     the rest of args for RecordsSearch
         """
         super().__init__(**kwargs)
         self.acl_operation = operation
         acl_filter = acl_filter or self._get_acl_filter()
         self.query = Bool(minimum_should_match=MinShouldMatch("100%"),
-                          filter=acl_filter.create_query(operation=operation, user=user))
+                          filter=acl_filter.create_query(operation=operation, user=user, context=context))
 
     def _get_acl_filter(self) -> ACLDefaultFilter:
         """

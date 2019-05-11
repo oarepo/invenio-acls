@@ -24,7 +24,7 @@
 #
 """A modul that defines anonymous actor."""
 import logging
-from typing import Iterable
+from typing import Dict, Iterable
 
 from elasticsearch_dsl import Q
 from flask import g
@@ -85,51 +85,68 @@ class SystemRoleActor(Actor):
         return [self.system_role] + (another or [])
 
     @classmethod
-    def get_elasticsearch_query(clz, user: User) -> Q or None:
+    def get_elasticsearch_query(clz, user: User, context: Dict) -> Q or None:
         """
         Returns elasticsearch query (elasticsearch_dls.Q) for the ACL.
 
         This is the counterpart of get_elasticsearch_representation and will be placed inside "nested" query
-        _invenio_explicit_acls
+
+        If the user is not current_user you MUST provide 'system_roles' in context containing a collection of:
+
+           * strings
+           * invenio_access.permissions.SystemRoleNeed (such as any_user, authenticated_user)
 
         :param user:  the user to be checked
+        :param context:  any extra context carrying information about the user.
         :return:      elasticsearch query that enforces the user
         """
         if user.is_anonymous:
             return Q('term', _invenio_explicit_acls__system_role='any_user')
-        if not hasattr(g, 'identity'):  # pragma: no cover
-            logger.error('Can not determine system role for a user that does not have Identity in flask.g')
-            return None
 
-        identity = g.identity
-        if not identity:  # pragma: no cover
-            logger.error('Can not determine system role for a user that does not have Identity in flask.g')
-            return None
-
-        if identity.id != user.id:
-            logger.error('Can not determine system role for a user whose id does not match Identity in flask.g')
-            return None
-
-        # sorting for easier tests
-        roles = sorted([p[1] for p in identity.provides if p[0] == 'system_role'])
+        roles = clz._get_system_roles(context, user)
 
         return Q('terms', _invenio_explicit_acls__system_role=roles)
 
-    def user_matches(self, user: User) -> bool:
+    @classmethod
+    def _get_system_roles(cls, context, user):
+        if 'system_roles' in context:
+            roles = []
+            for r in context['system_roles']:
+                if isinstance(r, str):
+                    roles.append(r)
+                elif r[0] == 'system_role':
+                    roles.append(r[1])
+            roles = sorted(roles)
+        else:
+            if not hasattr(g, 'identity'):  # pragma: no cover
+                raise AttributeError(
+                    'Can not determine system role for a user that does not have Identity in flask.g. '
+                    'Please add system_roles to context.')
+
+            identity = g.identity
+            if not identity:  # pragma: no cover
+                raise AttributeError(
+                    'Can not determine system role for a user that does not have Identity in flask.g. '
+                    'Please add system_roles to context.')
+
+            if identity.id != user.id:
+                raise AttributeError(
+                    'Can not determine system role for a user whose id does not match Identity in flask.g. '
+                    f'Identity id is "{identity.id}", supplied user id "{user.id}".'
+                    'Please add system_roles to context.')
+
+            # sorting for easier tests
+            roles = sorted([p[1] for p in identity.provides if p[0] == 'system_role'])
+        return roles
+
+    def user_matches(self, user: User, context: Dict) -> bool:
         """
         Checks if a user is allowed to perform any operation according to the ACL.
 
         :param user: user being checked against the ACL
+        :param context:  any extra context carrying information about the user
         """
-        if user.is_anonymous:
-            return self.system_role == 'any_user'
-
-        identity = g.identity
-        if identity.id != user.id:
-            logger.error('Can not determine system role for a user whose id does not match Identity in flask.g')
-            return False
-
-        roles = [p[1] for p in identity.provides if p[0] == 'system_role']
+        roles = self._get_system_roles(context, user)
         return self.system_role in roles
 
     def get_matching_users(self) -> Iterable[int]:

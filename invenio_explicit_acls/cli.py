@@ -67,7 +67,7 @@ def prepare_impl(schema):
     current_explicit_acls.prepare(schema)
 
 
-@explicit_acls.command()
+@explicit_acls.command(name='list')
 @cli.with_appcontext
 def list_schemas():  # pragma no cover
     """List all schemas registered in invenio."""

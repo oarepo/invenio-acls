@@ -56,10 +56,10 @@ def test_abstracts_in_actor(app, db):
         actor.get_elasticsearch_representation(None)
 
     with pytest.raises(NotImplementedError):
-        actor.get_elasticsearch_query(None)
+        actor.get_elasticsearch_query(None, {})
 
     with pytest.raises(NotImplementedError):
-        actor.user_matches(None)
+        actor.user_matches(None, {})
 
     with pytest.raises(NotImplementedError):
         actor.get_matching_users()

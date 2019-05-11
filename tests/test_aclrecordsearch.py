@@ -26,8 +26,11 @@ import json
 import uuid
 
 from elasticsearch_dsl.query import Ids
-from flask_login import current_user, login_user
-from helpers import clear_timestamp, get_json, login, records_url
+from flask import current_app
+from flask_login import current_user, login_user, logout_user
+from flask_principal import Identity, identity_changed
+from helpers import clear_timestamp, get_json, login, records_url, set_identity
+from invenio_access import authenticated_user
 from invenio_indexer.api import RecordIndexer
 from invenio_pidstore.minters import recid_minter
 from invenio_pidstore.models import PersistentIdentifier
@@ -74,6 +77,7 @@ def test_aclrecordsearch_returnall(app, db, es, es_acl_prepare, test_users):
     record_uuid = PersistentIdentifier.get('recid', rest_metadata['control_number']).object_uuid
     with app.test_request_context():
         login_user(test_users.u1)
+        set_identity(test_users.u1)
         assert current_user == test_users.u1
 
         # acl1 does not apply to the resource so the search must return no data
@@ -105,6 +109,7 @@ def test_aclrecordsearch_returnall(app, db, es, es_acl_prepare, test_users):
     # for the same user acl_return_all() must return the record and effective acls
     with app.test_request_context():
         login_user(test_users.u1)
+        set_identity(test_users.u1)
 
         # when acl_return_all is specified, return all matching records regardless of ACL
         with_all = ACLRecordsSearch(index=index, doc_type=doc_type).acl_return_all().get_record(
@@ -122,7 +127,7 @@ def test_aclrecordsearch_returnall(app, db, es, es_acl_prepare, test_users):
     # for user2 plain ACLRecordsSearch must return the record and effective acls
     with app.test_request_context():
         login_user(test_users.u2)
-
+        set_identity(test_users.u2)
         # when acl_return_all is specified, return all matching records regardless of ACL
         with_all = ACLRecordsSearch(index=index, doc_type=doc_type).get_record(record_uuid).execute().hits
         assert len(with_all) == 1
@@ -137,7 +142,6 @@ def test_aclrecordsearch_returnall(app, db, es, es_acl_prepare, test_users):
 
 
 def test_aclrecordsearch_explicit_user(app, db, es, es_acl_prepare, test_users):
-
     current_explicit_acls.prepare(RECORD_SCHEMA)
 
     with db.session.begin_nested():
@@ -157,21 +161,87 @@ def test_aclrecordsearch_explicit_user(app, db, es, es_acl_prepare, test_users):
 
     current_search_client.indices.flush()
 
-    rs = ACLRecordsSearch(user=test_users.u1)
+    rs = ACLRecordsSearch(user=test_users.u1, context={
+        'system_roles': ['authenticated_user']
+    })
     rec_id = str(rec.id)
+    print(json.dumps(rs.query(Ids(values=[rec_id])).query.to_dict(), indent=4))
+    assert rs.query(Ids(values=[rec_id])).query.to_dict() == {
+        "bool": {
+            "minimum_should_match": "100%",
+            "filter": [
+                {
+                    "bool": {
+                        "should": [
+                            {
+                                "nested": {
+                                    "path": "_invenio_explicit_acls",
+                                    "_name": "invenio_explicit_acls_match_get",
+                                    "query": {
+                                        "bool": {
+                                            "must": [
+                                                {
+                                                    "term": {
+                                                        "_invenio_explicit_acls.operation": "get"
+                                                    }
+                                                },
+                                                {
+                                                    "bool": {
+                                                        "minimum_should_match": 1,
+                                                        "should": [
+                                                            {
+                                                                "terms": {
+                                                                    "_invenio_explicit_acls.role": [
+                                                                        1
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                "terms": {
+                                                                    "_invenio_explicit_acls.system_role": [
+                                                                        "authenticated_user"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
+                                                                "term": {
+                                                                    "_invenio_explicit_acls.user": 1
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "minimum_should_match": 1
+                    }
+                }
+            ],
+            "must": [
+                {
+                    "ids": {
+                        "values": [
+                            rec_id
+                        ]
+                    }
+                }
+            ]
+        }
+    }
 
-    assert rs.query(Ids(values=[rec_id])).query.to_dict() == {'bool': {'minimum_should_match': '100%', 'filter': [{'bool': {
-        'should': [{'nested': {'path': '_invenio_explicit_acls', '_name': 'invenio_explicit_acls_match_get', 'query': {
-            'bool': {'must': [{'term': {'_invenio_explicit_acls.operation': 'get'}}, {
-                'bool': {'minimum_should_match': 1, 'should': [{'terms': {'_invenio_explicit_acls.role': [1]}},
-                                                               {'term': {'_invenio_explicit_acls.user': 1}}]}}]}}}}],
-        'minimum_should_match': 1}}], 'must': [{'ids': {'values': [str(rec.id)]}}]}}
-
-    hits = list(ACLRecordsSearch(user=test_users.u1).get_record(rec.id).execute())
+    hits = list(ACLRecordsSearch(user=test_users.u1, context={
+        'system_roles': [authenticated_user]
+    }).get_record(rec.id).execute())
 
     assert len(hits) == 1
     assert hits[0].meta.id == rec_id
     print(hits)
 
-    hits = list(ACLRecordsSearch(user=test_users.u2).get_record(rec.id).execute())
+    hits = list(ACLRecordsSearch(user=test_users.u2, context={
+        'system_roles': [authenticated_user]
+    }).get_record(rec.id).execute())
     assert hits == []

@@ -25,6 +25,7 @@
 from elasticsearch import VERSION as ES_VERSION
 from elasticsearch_dsl.query import Term, Terms
 from flask_security import AnonymousUser
+from invenio_access import any_user, authenticated_user
 
 from invenio_explicit_acls.actors import RoleActor
 
@@ -51,22 +52,24 @@ def test_get_elasticsearch_query(app, db, es, test_users):
     with db.session.begin_nested():
         actor = RoleActor(name='test', originator=test_users.u1, roles=[test_users.r1])
         db.session.add(actor)
-    assert Terms(_invenio_explicit_acls__role=[test_users.r1.id]) == actor.get_elasticsearch_query(test_users.u1)
+    assert Terms(_invenio_explicit_acls__role=[test_users.r1.id]) == \
+           actor.get_elasticsearch_query(test_users.u1, {'system_roles': [authenticated_user]})
     assert Terms(_invenio_explicit_acls__role=[test_users.r1.id, test_users.r2.id]) == \
-           actor.get_elasticsearch_query(test_users.u2)
-    assert Terms(_invenio_explicit_acls__role=[test_users.r2.id]) == actor.get_elasticsearch_query(test_users.u3)
+           actor.get_elasticsearch_query(test_users.u2, {'system_roles': [authenticated_user]})
+    assert Terms(_invenio_explicit_acls__role=[test_users.r2.id]) == \
+           actor.get_elasticsearch_query(test_users.u3, {'system_roles': [authenticated_user]})
 
-    assert actor.get_elasticsearch_query(AnonymousUser()) is None
+    assert actor.get_elasticsearch_query(AnonymousUser(), {'system_roles': [any_user]}) is None
 
 
 def test_user_matches(app, db, es, test_users):
     with db.session.begin_nested():
         actor = RoleActor(name='test', originator=test_users.u1, roles=[test_users.r1])
         db.session.add(actor)
-    assert actor.user_matches(test_users.u1)
-    assert actor.user_matches(test_users.u2)
-    assert not actor.user_matches(test_users.u3)
-    assert not actor.user_matches(AnonymousUser())
+    assert actor.user_matches(test_users.u1, {'system_roles': [authenticated_user]})
+    assert actor.user_matches(test_users.u2, {'system_roles': [authenticated_user]})
+    assert not actor.user_matches(test_users.u3, {'system_roles': [authenticated_user]})
+    assert not actor.user_matches(AnonymousUser(), {'system_roles': [any_user]})
 
 
 def test_get_matching_users(app, db, es, test_users):
