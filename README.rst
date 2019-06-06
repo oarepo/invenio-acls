@@ -29,5 +29,3 @@ https://indico.cern.ch/event/773969/contributions/3351844/attachments/1814264/29
 
 Further documentation is available on
 https://invenio-explicit-acls.readthedocs.io/
-
-==========================================================
