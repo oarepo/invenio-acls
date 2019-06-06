@@ -197,6 +197,18 @@ def test_aclrecordsearch_explicit_user(app, db, es, es_acl_prepare, test_users):
                                                                 }
                                                             },
                                                             {
+                                                                "term": {
+                                                                    "_invenio_explicit_acls.user": 1
+                                                                }
+                                                            },
+                                                            {
+                                                                "terms": {
+                                                                    "_invenio_explicit_acls.role": [
+                                                                        1
+                                                                    ]
+                                                                }
+                                                            },
+                                                            {
                                                                 "terms": {
                                                                     "_invenio_explicit_acls.system_role": [
                                                                         "authenticated_user"

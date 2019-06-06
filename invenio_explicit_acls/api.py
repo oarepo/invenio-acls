@@ -150,7 +150,7 @@ class AclAPI:
         """Returns a set of schemas for which there exists at least one ACL."""
         return ACL.enabled_schemas()
 
-    def serialize_record_acls(self, record_acls: Iterable[ACL]):
+    def serialize_record_acls(self, record_acls: Iterable[ACL], record=None):
         """
         Serializes a set of record ACLs to json form that will be attached to a record.
 
@@ -165,7 +165,7 @@ class AclAPI:
             actors = {}
             for actor in record_acl.actors:  # type: Actor
                 actor_type = actor.__mapper_args__['polymorphic_identity']
-                actors[actor_type] = actor.get_elasticsearch_representation(actors.get(actor_type, None))
+                actors[actor_type] = actor.get_elasticsearch_representation(actors.get(actor_type, None), record=record)
 
             if actors:
                 acl_def.append({

@@ -25,11 +25,12 @@
 """A modul that defines user actor."""
 from typing import Dict, Iterable, Union
 
-from elasticsearch_dsl import Q
-from elasticsearch_dsl.query import MatchAll, Term
 from flask_security import AnonymousUser
 from invenio_accounts.models import User
 from invenio_db import db
+from invenio_records import Record
+
+from invenio_explicit_acls.actors.mixins import UserMixin
 
 from ..models import Actor
 
@@ -41,7 +42,7 @@ users_actors = db.Table('explicit_acls_users_useractors',
                         )
 
 
-class UserActor(Actor):
+class UserActor(UserMixin, Actor):
     """An actor matching a set of users identified by ID."""
 
     __tablename__ = 'explicit_acls_useractor'
@@ -59,27 +60,7 @@ class UserActor(Actor):
         """Returns the string representation of the actor."""
         return 'UserActor[%s]' % self.name
 
-    @classmethod
-    def get_elasticsearch_schema(clz, _es_version):
-        """
-        Returns the elasticsearch schema for the _invenio_explicit_acls property.
-
-        The property looks like::
-
-            _invenio_explicit_acls [{
-               "timestamp": "...when the ACL has been applied to the resource",
-               "acl": <id of the acl>,
-               "operation": name of the operation
-                user: [1, 2, 3]
-            }]
-
-        :return:
-        """
-        return {
-            'type': 'integer'
-        }
-
-    def get_elasticsearch_representation(self, another=None):
+    def get_elasticsearch_representation(self, another=None, record=None, **kwargs):
         """
         Returns ES representation of this Actor.
 
@@ -89,24 +70,7 @@ class UserActor(Actor):
         """
         return list(set([x.id for x in self.users] + (another or [])))
 
-    @classmethod
-    def get_elasticsearch_query(clz, user: Union[User, AnonymousUser], context: Dict) -> Q or None:
-        """
-        Returns elasticsearch query (elasticsearch_dls.Q) for the ACL.
-
-        This is the counterpart of get_elasticsearch_representation and will be placed inside "nested" query
-        _invenio_explicit_acls
-
-        :param user:  the user to be checked
-        :param context:  any extra context carrying information about the user
-        :return:      elasticsearch query that enforces the user
-        """
-        if user.is_authenticated:
-            return Term(_invenio_explicit_acls__user=user.id)
-        else:
-            return None
-
-    def user_matches(self, user: Union[User, AnonymousUser], context: Dict) -> bool:
+    def user_matches(self, user: Union[User, AnonymousUser], context: Dict, record: Record = None) -> bool:
         """
         Checks if a user is allowed to perform any operation according to the ACL.
 
@@ -120,7 +84,7 @@ class UserActor(Actor):
                 return True
         return False
 
-    def get_matching_users(self) -> Iterable[int]:
+    def get_matching_users(self, record: Record = None) -> Iterable[int]:
         """
         Returns a list of users matching this Actor.
 

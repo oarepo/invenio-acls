@@ -29,36 +29,29 @@ from elasticsearch_dsl import Q
 from invenio_accounts.models import Role, User
 from invenio_db import db
 from invenio_records import Record
+from jsonpointer import resolve_pointer
 
 from invenio_explicit_acls.actors.mixins import RoleMixin
 
 from ..models import Actor
 
-roles_actors = db.Table('explicit_acls_roles_roleactors',
-                        db.Column('role_id', db.Integer, db.ForeignKey('accounts_role.id'), primary_key=True),
-                        db.Column('actor_id', db.String(36), db.ForeignKey('explicit_acls_roleactor.id',
-                                                                           name='explicit_acls_ra1'),
-                                  primary_key=True)
-                        )
 
-
-class RoleActor(RoleMixin, Actor):
+class RecordRoleActor(RoleMixin, Actor):
     """An actor matching set of invenio roles."""
 
-    __tablename__ = 'explicit_acls_roleactor'
+    __tablename__ = 'explicit_acls_recordroleactor'
     __mapper_args__ = {
-        'polymorphic_identity': 'role',
+        'polymorphic_identity': 'recordrole',
     }
 
     id = db.Column(db.String(36), db.ForeignKey('explicit_acls_actor.id'), primary_key=True)
     """Id maps to base class' id"""
 
-    roles = db.relationship(Role, secondary=roles_actors, lazy='subquery',
-                            backref=db.backref('actors', lazy=True))
+    role_property_path = db.Column(db.String(36))
 
     def __str__(self):
         """Returns the string representation of the actor."""
-        return 'RoleActor[%s]' % self.name
+        return 'RecordRoleActor[%s; %s]' % (self.name, self.role_property_path)
 
     def get_elasticsearch_representation(self, others=None, record=None, **kwargs):
         """
@@ -68,7 +61,18 @@ class RoleActor(RoleMixin, Actor):
                         The implementation should merge it with its own ES representation
         :return: The elasticsearch representation of the property on Record
         """
-        return list(set([x.id for x in self.roles] + (others or [])))
+        if not record:
+            raise Exception('This Actor works on record, so pass one!')
+        ret = self._get_role_ids(record)
+        if others:
+            ret += others
+        return ret
+
+    def _get_role_ids(self, record):
+        ret = resolve_pointer(record, self.role_property_path)
+        if not isinstance(ret, list):
+            ret = [ret]
+        return ret
 
     def user_matches(self, user: User, context: Dict, record: Record = None) -> bool:
         """
@@ -77,7 +81,11 @@ class RoleActor(RoleMixin, Actor):
         :param user: user being checked against the ACL
         :param context:  any extra context carrying information about the user
         """
-        role_ids = set(x.id for x in self.roles)
+        if user.is_anonymous:
+            return False
+        if record is None:
+            return False
+        role_ids = set(self._get_role_ids(record))
         for role in user.roles:
             if role.id in role_ids:
                 return True
@@ -89,8 +97,13 @@ class RoleActor(RoleMixin, Actor):
 
         :return: Iterable of a user ids
         """
+        if record is None:
+            return []
+
         ret = set()
-        for r in self.roles:
+        role_ids = self._get_role_ids(record)
+
+        for r in Role.query.filter(Role.id.in_(role_ids)):
             for u in r.users:
                 ret.add(u.id)
         return ret

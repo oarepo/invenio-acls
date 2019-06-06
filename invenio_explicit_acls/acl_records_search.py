@@ -204,7 +204,6 @@ class ACLRecordsSearch(RecordsSearch):
 
         :return: cloned instance
         """
-
         current_class = self.__class__
 
         try:

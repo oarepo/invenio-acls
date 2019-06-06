@@ -41,4 +41,5 @@ def add_acls(app, json=None, index=None, record=None, doc_type=None, **kwargs):
         return  # pragma no cover
 
     matching_acls = current_explicit_acls.get_record_acls(record)
-    json['_invenio_explicit_acls'] = current_explicit_acls.serialize_record_acls(matching_acls)
+    acl_props = current_explicit_acls.serialize_record_acls(matching_acls, record=record)
+    json['_invenio_explicit_acls'] = acl_props

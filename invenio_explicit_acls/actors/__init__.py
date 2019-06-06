@@ -24,8 +24,10 @@
 #
 """Built-in actors definition."""
 
+from .record_role import RecordRoleActor
+from .record_user import RecordUserActor
 from .role import RoleActor
 from .system_role import SystemRoleActor
 from .user import UserActor
 
-__all__ = ('SystemRoleActor', 'RoleActor', 'UserActor')
+__all__ = ('SystemRoleActor', 'RoleActor', 'UserActor', 'RecordUserActor', 'RecordRoleActor')

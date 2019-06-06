@@ -45,10 +45,12 @@ from invenio_explicit_acls.utils import schema_to_index
 try:
     from psycopg2 import apilevel
     from sqlalchemy.dialects.postgresql import ARRAY
+
     StringArray = ARRAY(db.String)
 except ImportError:
     # array represented in String field
     from .utils import ArrayType as ARRAY
+
     StringArray = ARRAY(db.String(length=1024))
 
 
@@ -286,7 +288,7 @@ class Actor(db.Model, Timestamp):
         raise NotImplementedError("Must be implemented")
 
     @abstractmethod
-    def get_elasticsearch_representation(self, another=None):
+    def get_elasticsearch_representation(self, another=None, record=None, **kwargs):
         """
         Returns ES representation of this Actor.
 
@@ -321,7 +323,7 @@ class Actor(db.Model, Timestamp):
         raise NotImplementedError("Must be implemented")
 
     @abstractmethod
-    def user_matches(self, user: Union[User, AnonymousUser], context: Dict) -> bool:
+    def user_matches(self, user: Union[User, AnonymousUser], context: Dict, record: Record = None) -> bool:
         """
         Checks if a user is allowed to perform any operation according to the ACL.
 
@@ -331,7 +333,7 @@ class Actor(db.Model, Timestamp):
         raise NotImplementedError('Must be implemented')
 
     @abstractmethod
-    def get_matching_users(self) -> Iterable[int]:
+    def get_matching_users(self, record: Record = None) -> Iterable[int]:
         """
         Returns a list of users matching this Actor.
 
@@ -342,5 +344,5 @@ class Actor(db.Model, Timestamp):
 
 __all__ = [
     'ACL',
-    'Actor',
+    'Actor'
 ]

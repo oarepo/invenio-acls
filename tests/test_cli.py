@@ -42,7 +42,7 @@ RECORD_SCHEMA = 'records/record-v1.0.0.json'
 
 
 def test_version():
-    assert __version__.startswith('3.')
+    assert __version__.startswith('4.')
 
 
 def test_prepare(app, db, es, es_acl_prepare):

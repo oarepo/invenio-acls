@@ -170,7 +170,6 @@ def explain_impl(record, debug):
 
     :param record a path to a file containing record metadata or '-' to read the metadata from stdin.
     """
-
     class Model:
         def __init__(self):
             self.id = 'record-id'

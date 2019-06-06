@@ -30,6 +30,7 @@ from elasticsearch_dsl import Q
 from flask import g
 from invenio_accounts.models import User
 from invenio_db import db
+from invenio_records import Record
 
 from ..models import Actor
 
@@ -74,7 +75,7 @@ class SystemRoleActor(Actor):
             'type': 'keyword'
         }
 
-    def get_elasticsearch_representation(self, another=None):
+    def get_elasticsearch_representation(self, another=None, record=None, **kwargs):
         """
         Returns ES representation of this Actor.
 
@@ -139,7 +140,7 @@ class SystemRoleActor(Actor):
             roles = sorted([p[1] for p in identity.provides if p[0] == 'system_role'])
         return roles
 
-    def user_matches(self, user: User, context: Dict) -> bool:
+    def user_matches(self, user: User, context: Dict, record: Record = None) -> bool:
         """
         Checks if a user is allowed to perform any operation according to the ACL.
 
@@ -149,7 +150,7 @@ class SystemRoleActor(Actor):
         roles = self._get_system_roles(context, user)
         return self.system_role in roles
 
-    def get_matching_users(self) -> Iterable[int]:
+    def get_matching_users(self, record: Record = None) -> Iterable[int]:
         """
         Returns a list of users matching this Actor.
 
