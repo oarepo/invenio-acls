@@ -37,6 +37,25 @@ The following implementations are built-in:
     SystemRoleActor:
         an actor that matches anonymous users, authenticated users or everyone
 
+Actors can also take data from the indexed document. For example, if the document
+contains a property "creator_id", one can use `RecordUserActor(..., path='/creator_id')`
+to write an ACL matching the creator (whoever it is).
+
+The following record actors are built-in:
+
+    RecordUserActor:
+        a set of users enumerated in a property in the indexed record
+
+    RecordRoleActor:
+        a set of user roles enumerated in a property in the indexed record
+
+Again, these are extensible, so for example if the record metadata contains
+property `faculty`, one can write a custom
+`PRBACRoleActor(role='administrator', parameter='faculty', path='/faculty')`
+to assign rights to the correct faculty administrator defined in a local PRBAC
+(parametrized role-based access control) system - would match all users
+with prbac role "administrator[faculty=<value of faculty property in the document>]"
+
 
 Admin interface
 ===============

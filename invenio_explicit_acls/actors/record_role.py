@@ -47,11 +47,11 @@ class RecordRoleActor(RoleMixin, Actor):
     id = db.Column(db.String(36), db.ForeignKey('explicit_acls_actor.id'), primary_key=True)
     """Id maps to base class' id"""
 
-    role_property_path = db.Column(db.String(36))
+    path = db.Column(db.String(36))
 
     def __str__(self):
         """Returns the string representation of the actor."""
-        return 'RecordRoleActor[%s; %s]' % (self.name, self.role_property_path)
+        return 'RecordRoleActor[%s; %s]' % (self.name, self.path)
 
     def get_elasticsearch_representation(self, others=None, record=None, **kwargs):
         """
@@ -69,7 +69,7 @@ class RecordRoleActor(RoleMixin, Actor):
         return ret
 
     def _get_role_ids(self, record):
-        ret = resolve_pointer(record, self.role_property_path)
+        ret = resolve_pointer(record, self.path)
         if not isinstance(ret, list):
             ret = [ret]
         return ret
