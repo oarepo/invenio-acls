@@ -33,6 +33,7 @@ from elasticsearch import VERSION as ES_VERSION
 from flask import current_app
 from invenio_db import db
 from invenio_records import Record
+from invenio_records_rest.utils import obj_or_import_string
 from invenio_search import current_search_client
 from werkzeug.utils import cached_property
 
@@ -43,6 +44,8 @@ from invenio_explicit_acls.utils import schema_to_index
 from .models import ACL, Actor
 
 logger = logging.getLogger(__name__)
+
+
 
 
 # noinspection PyMethodMayBeStatic
@@ -133,12 +136,22 @@ class AclAPI:
         for acl in self.acl_models:
             applicable_acls.extend(acl.get_record_acls(record))
 
-        # return those applicable acls with the highest priority
-        if applicable_acls:
+        if not applicable_acls:
+            return []
+
+        return self._applicable_acls_filter(applicable_acls)
+
+    @cached_property
+    def _applicable_acls_filter(self):
+
+        def default_applicable_acls_filter(applicable_acls):
             max_priority = max([x.priority for x in applicable_acls])
             return [x for x in applicable_acls if x.priority == max_priority]
 
-        return []
+        return obj_or_import_string(
+            current_app.config.get('INVENIO_EXPLICIT_ACLS_APPLICABLE_ACLS_FILTER'),
+            default=default_applicable_acls_filter
+        )
 
     @property
     def acl_doctype_name(self):
