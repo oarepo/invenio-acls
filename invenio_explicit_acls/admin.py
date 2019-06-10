@@ -43,7 +43,8 @@ from invenio_explicit_acls.acls import ElasticsearchACL, IdACL
 from invenio_explicit_acls.acls.default_acls import DefaultACL
 from invenio_explicit_acls.acls.propertyvalue_acls import BoolOperation, \
     MatchOperation, PropertyValue, PropertyValueACL
-from invenio_explicit_acls.actors import RoleActor, SystemRoleActor, UserActor
+from invenio_explicit_acls.actors import RecordRoleActor, RecordUserActor, \
+    RoleActor, SystemRoleActor, UserActor
 from invenio_explicit_acls.proxies import current_explicit_acls
 
 
@@ -361,6 +362,68 @@ class RoleActorModelView(OriginatorMixin, ModelView):
             model.name = ', '.join([role.name for role in model.roles])
 
 
+class RecordUserActorModelView(OriginatorMixin, ModelView):
+    """ModelView for user actors."""
+
+    column_formatters = dict(
+        # record_str=link_record
+    )
+    column_details_list = (
+        'id', 'name', 'users', 'created', 'updated', 'originator')
+    column_list = ('id', 'name', 'path', 'created', 'updated', 'originator')
+    column_labels = dict(
+        id=_('ACL ID'),
+        record_str=_('Record')
+    )
+    column_filters = ('created', 'updated',)
+    column_searchable_list = ()
+    column_default_sort = 'created'
+    form_base_class = FlaskForm
+    form_columns = ('name', 'path', )
+    form_args = dict(
+    )
+    page_size = 25
+    form_extra_fields = {
+    }
+
+    def on_model_change(self, form, model, is_created):
+        """Sets up name if it has not been filled."""
+        super().on_model_change(form, model, is_created)
+        if not model.name:
+            model.name = model.path
+
+
+class RecordRoleActorModelView(OriginatorMixin, ModelView):
+    """ModelView for role actors."""
+
+    column_formatters = dict(
+        # record_str=link_record
+    )
+    column_details_list = (
+        'id', 'name', 'roles', 'created', 'updated', 'originator')
+    column_list = ('id', 'name', 'path', 'created', 'updated', 'originator')
+    column_labels = dict(
+        id=_('ACL ID'),
+        record_str=_('Record')
+    )
+    column_filters = ('created', 'updated',)
+    column_searchable_list = ()
+    column_default_sort = 'created'
+    form_base_class = FlaskForm
+    form_columns = ('path', 'name',)
+    form_args = dict(
+    )
+    page_size = 25
+    form_extra_fields = {
+    }
+
+    def on_model_change(self, form, model, is_created):
+        """Sets up name if it has not been filled."""
+        super().on_model_change(form, model, is_created)
+        if not model.name:
+            model.name = model.path
+
+
 class SystemRoleActorModelView(OriginatorMixin, ModelView):
     """ModelView for role actors."""
 
@@ -420,6 +483,19 @@ useractor_aclset_adminview = dict(
 roleactor_aclset_adminview = dict(
     modelview=RoleActorModelView,
     model=RoleActor,
+    category=_('ACL Actors'))
+
+
+recorduseractor_aclset_adminview = dict(
+    modelview=RecordUserActorModelView,
+    name='Document-based User Actor',
+    model=RecordUserActor,
+    category=_('ACL Actors'))
+
+recordroleactor_aclset_adminview = dict(
+    modelview=RecordRoleActorModelView,
+    name='Document-based Role Actor',
+    model=RecordRoleActor,
     category=_('ACL Actors'))
 
 systemroleactor_aclset_adminview = dict(

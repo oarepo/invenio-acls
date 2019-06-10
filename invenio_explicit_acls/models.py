@@ -93,7 +93,14 @@ class ACL(db.Model, Timestamp):
     priority = db.Column(
         db.Integer,
         default=0)
-    """Priority of the acl rule. Only the applicable rules with the highest priority get applied to the resource"""
+    """Priority of the acl rule. Only the applicable rules with the highest priority 
+    within a group get applied to the resource"""
+
+    priority_group = db.Column(
+        db.String(32),
+        default='default'
+    )
+    """ACL Priority group"""
 
     schemas = db.Column(StringArray)
     """

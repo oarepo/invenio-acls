@@ -222,6 +222,7 @@ name = test
 operation = get
 originator = User <id=1, email=1@test.com>
 originator_id = 1
+priority_group = default
 record_selector = {'term': {'keywords': 'blah'}}
 schemas = ['records/record-v1.0.0.json']
 type = elasticsearch
@@ -313,6 +314,7 @@ name = test
 operation = get
 originator = User <id=1, email=1@test.com>
 originator_id = 1
+priority_group = default
 record_selector = {'term': {'keywords': 'blah'}}
 schemas = ['records/record-v1.0.0.json']
 type = elasticsearch
@@ -402,6 +404,7 @@ actors = ['UserActor[test]']
 name = test
 operation = get
 originator = User <id=1, email=1@test.com>
+priority_group = default
 record_selector = {'term': {'keywords': 'blah'}}
 schemas = ['records/record-v1.0.0.json']
 type = elasticsearch

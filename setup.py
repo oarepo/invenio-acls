@@ -135,6 +135,8 @@ setup(
             'propertyvalueacl_aclset_adminview = invenio_explicit_acls.admin:propertyvalueacl_aclset_adminview',
             'useractor_aclset_adminview = invenio_explicit_acls.admin:useractor_aclset_adminview',
             'roleactor_aclset_adminview = invenio_explicit_acls.admin:roleactor_aclset_adminview',
+            'recorduseractor_aclset_adminview = invenio_explicit_acls.admin:recorduseractor_aclset_adminview',
+            'recordroleactor_aclset_adminview = invenio_explicit_acls.admin:recordroleactor_aclset_adminview',
             'systemroleactor_aclset_adminview = invenio_explicit_acls.admin:systemroleactor_aclset_adminview',
         ],
         'flask.commands': [

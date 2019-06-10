@@ -27,6 +27,7 @@ import datetime
 import json
 import logging
 import os
+from collections import defaultdict
 from typing import Iterable
 
 from elasticsearch import VERSION as ES_VERSION
@@ -145,6 +146,18 @@ class AclAPI:
     def _applicable_acls_filter(self):
 
         def default_applicable_acls_filter(applicable_acls):
+            max_priorities = defaultdict(list)
+            for x in applicable_acls:
+                if x.priority_group in max_priorities:
+                    max_priorities_group = max_priorities[x.priority_group]
+                    if x.priority < max_priorities_group[0].priority:
+                        continue
+                    if x.priority > max_priorities_group[0].priority:
+                        max_priorities_group.clear()
+                    max_priorities_group.append(x)
+                else:
+                    max_priorities[x.priority_group].append(x)
+
             max_priority = max([x.priority for x in applicable_acls])
             return [x for x in applicable_acls if x.priority == max_priority]
 
