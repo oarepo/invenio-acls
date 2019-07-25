@@ -122,8 +122,9 @@ class ESACLMixin(object):
         acl_doctype_name = current_explicit_acls.acl_doctype_name
 
         fk = next(iter(mapping['mappings'].keys()))
-        mapping['mappings'][acl_doctype_name] = mapping['mappings'][fk]
-        del mapping['mappings'][fk]
+        if acl_doctype_name != fk:
+            mapping['mappings'][acl_doctype_name] = mapping['mappings'][fk]
+            del mapping['mappings'][fk]
 
         mapping['mappings'][acl_doctype_name]['properties'] = {
             **mapping['mappings'][acl_doctype_name]['properties'],

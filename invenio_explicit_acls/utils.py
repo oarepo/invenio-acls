@@ -32,9 +32,11 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String, TypeDecorator
 
 from invenio_explicit_acls.proxies import current_explicit_acls
+from invenio_explicit_acls.proxies import \
+    current_schema_to_index as schema_to_index
 
 
-def schema_to_index(schema):
+def default_schema_to_index(schema):
     """Converts schema to a pair of (index, doctype)."""
     index_names = current_search.mappings.keys()
     index, doc_type = invenio_schema_to_index(schema, index_names=index_names)

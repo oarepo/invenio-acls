@@ -36,7 +36,7 @@ from invenio_db import db
 from invenio_records import Record
 from invenio_records_rest.utils import obj_or_import_string
 from invenio_search import current_search_client
-from werkzeug.utils import cached_property
+from werkzeug.utils import cached_property, import_string
 
 from invenio_explicit_acls.tasks import acl_changed_reindex, \
     acl_deleted_reindex
@@ -45,8 +45,6 @@ from invenio_explicit_acls.utils import schema_to_index
 from .models import ACL, Actor
 
 logger = logging.getLogger(__name__)
-
-
 
 
 # noinspection PyMethodMayBeStatic
@@ -217,7 +215,7 @@ class AclAPI:
             logger.exception('Error: could not update ACL index')
 
         if delayed and current_app.config['INVENIO_EXPLICIT_ACLS_DELAYED_REINDEX']:
-            acl_changed_reindex.delay(str(acl.id))              # pragma no cover
+            acl_changed_reindex.delay(str(acl.id))  # pragma no cover
         else:
             acl_changed_reindex(str(acl.id))
 
@@ -238,6 +236,11 @@ class AclAPI:
             acl_deleted_reindex.delay(acl.schemas, str(acl.id))  # pragma no cover
         else:
             acl_deleted_reindex(acl.schemas, str(acl.id))
+
+    @cached_property
+    def schema_to_index(self):
+        """Import the configurable 'record_to_index' function."""
+        return import_string(current_app.config.get('INVENIO_EXPLICIT_ACLS_SCHEMA_TO_INDEX'))
 
 
 __all__ = ('AclAPI',)

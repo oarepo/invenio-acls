@@ -45,8 +45,11 @@ from invenio_explicit_acls.utils import schema_to_index
 try:
     from psycopg2 import apilevel
     from sqlalchemy.dialects.postgresql import ARRAY
+    from .utils import ArrayType as fallback_array
 
-    StringArray = ARRAY(db.String)
+    fallback_StringArray = ARRAY(db.String(length=1024))
+
+    StringArray = ARRAY(db.String).with_variant(fallback_StringArray, 'sqlite')
 except ImportError:
     # array represented in String field
     from .utils import ArrayType as ARRAY

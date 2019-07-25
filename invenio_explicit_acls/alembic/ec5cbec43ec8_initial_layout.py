@@ -32,9 +32,16 @@ try:
     from psycopg2 import apilevel
     from sqlalchemy.dialects.postgresql import JSONB as JSON
     from sqlalchemy.dialects.postgresql import ARRAY
+
+    from invenio_explicit_acls.utils import ArrayType as FallbackArrayType
+
+    fallback_StringArray = FallbackArrayType(sa.String())
+    StringArray = ARRAY(sa.String).with_variant(fallback_StringArray, 'sqlite')
 except:
     from sqlalchemy.types import JSON
     from invenio_explicit_acls.utils import ArrayType as ARRAY
+
+    StringArray = ARRAY(sa.String())
 
 
 # revision identifiers, used by Alembic.
@@ -53,7 +60,7 @@ def upgrade():
     sa.Column('id', sa.String(length=36), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('priority', sa.Integer(), nullable=True),
-    sa.Column('schemas', ARRAY(sa.String()), nullable=True),
+    sa.Column('schemas', StringArray, nullable=True),
     sa.Column('originator_id', sa.Integer(), nullable=False),
     sa.Column('type', sa.String(length=50), nullable=True),
     sa.Column('operation', sa.String(length=50), nullable=True),

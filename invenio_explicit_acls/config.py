@@ -27,3 +27,4 @@ INVENIO_EXPLICIT_ACLS_INDEX_NAME = 'invenio_explicit_acls-acl-v1.0.0'
 INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME = '_doc'
 INVENIO_EXPLICIT_ACLS_MIXIN_NAME = 'invenio-acl-mixin-v1.0.0'
 INVENIO_EXPLICIT_ACLS_DELAYED_REINDEX = True
+INVENIO_EXPLICIT_ACLS_SCHEMA_TO_INDEX = 'invenio_explicit_acls.utils.default_schema_to_index'

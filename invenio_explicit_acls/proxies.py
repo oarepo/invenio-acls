@@ -28,4 +28,12 @@
 from flask import current_app
 from werkzeug.local import LocalProxy
 
-current_explicit_acls = LocalProxy(lambda: current_app.extensions['invenio-explicit-acls'])     # type: invenio_explicit_acls.api.AclAPI
+current_explicit_acls = LocalProxy(
+    lambda: current_app.extensions['invenio-explicit-acls'])  # type: invenio_explicit_acls.api.AclAPI
+
+
+def _get_current_schema_to_index():
+    return current_app.extensions['invenio-explicit-acls'].schema_to_index
+
+
+current_schema_to_index = LocalProxy(_get_current_schema_to_index)
