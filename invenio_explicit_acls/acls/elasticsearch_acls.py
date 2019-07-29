@@ -33,9 +33,12 @@ from .es_mixin import ESACLMixin
 
 try:
     from psycopg2 import apilevel
-    from sqlalchemy.dialects.postgresql import JSONB as JSON
+    from sqlalchemy.dialects.postgresql import JSONB
+    from sqlalchemy.types import JSON as InefficientJSON
+    JSON = JSONB().with_variant(InefficientJSON(), 'sqlite')
 except:
-    from sqlalchemy.types import JSON
+    from sqlalchemy.types import JSON as InefficientJSON
+    JSON = InefficientJSON()
 
 logger = logging.getLogger(__name__)
 

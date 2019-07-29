@@ -47,7 +47,7 @@ try:
     from sqlalchemy.dialects.postgresql import ARRAY
     from .utils import ArrayType as fallback_array
 
-    fallback_StringArray = ARRAY(db.String(length=1024))
+    fallback_StringArray = fallback_array(db.String(length=1024))
 
     StringArray = ARRAY(db.String).with_variant(fallback_StringArray, 'sqlite')
 except ImportError:

@@ -48,7 +48,9 @@ def test_version():
 def test_prepare(app, db, es, es_acl_prepare):
     assert 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0' in current_search_client.indices.get('*')
     mapping = current_search_client.indices.get_mapping('records-record-v1.0.0')
-    mapping = mapping['records-record-v1.0.0']['mappings']['record-v1.0.0']['properties']
+    assert len(mapping) == 1
+    key = list(mapping.keys())[0]
+    mapping = mapping[key]['mappings']['record-v1.0.0']['properties']
     assert '_invenio_explicit_acls' in mapping
 
 
@@ -68,7 +70,9 @@ def test_cli_prepare(app, db, es, capsys):
     assert captured.err.strip() == ''
     assert 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0' in current_search_client.indices.get('*')
     mapping = current_search_client.indices.get_mapping('records-record-v1.0.0')
-    mapping = mapping['records-record-v1.0.0']['mappings']['record-v1.0.0']['properties']
+    assert len(mapping) == 1
+    key = list(mapping.keys())[0]
+    mapping = mapping[key]['mappings']['record-v1.0.0']['properties']
     assert '_invenio_explicit_acls' in mapping
 
 

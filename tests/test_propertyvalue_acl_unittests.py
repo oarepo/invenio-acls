@@ -116,7 +116,9 @@ def test_propertyvalue_acl_prepare_schema_acl(app, db, es, es_acl_prepare, test_
 
     idx, doc_type = schema_to_index(RECORD_SCHEMA)
     mapping = current_search_client.indices.get_mapping(idx)
-    assert '_invenio_explicit_acls' in mapping[idx]['mappings'][doc_type]['properties']
+    assert len(mapping) == 1
+    key = list(mapping.keys())[0]
+    assert '_invenio_explicit_acls' in mapping[key]['mappings'][doc_type]['properties']
 
 
 def test_propertyvalue_acl_get_matching_resources(app, db, es, es_acl_prepare, test_users):
