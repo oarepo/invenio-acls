@@ -25,6 +25,7 @@
 """Utility functions."""
 import json
 
+from invenio_indexer.utils import default_record_to_index
 from invenio_jsonschemas import current_jsonschemas
 from invenio_search import current_search
 from invenio_search.utils import schema_to_index as invenio_schema_to_index
@@ -47,6 +48,11 @@ def default_schema_to_index(schema):
 
 def default_schema_to_index_returning_doc(schema):
     index, _ = default_schema_to_index(schema)
+    return index, '_doc'
+
+
+def default_record_to_index_returning_doc(record):
+    index, _ = default_record_to_index(record)
     return index, '_doc'
 
 
