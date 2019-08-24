@@ -31,67 +31,54 @@ from setuptools import find_packages, setup
 
 readme = open('README.rst').read()
 
-tests_require = [
-    'check-manifest>=0.25',
-    'coverage>=4.0',
-    'isort>=4.3.3',
-    'pydocstyle>=1.0.0',
-    'pytest-cache>=1.0',
-    'pytest-cov>=1.8.0',
-    'pytest-pep8>=1.0.6',
-    'pytest>=2.8.0',
-]
+INVENIO_VERSION = '3.1.1'
 
-invenio_search_version = '1.0.0'
-invenio_db_version = '1.0.1'
+tests_require = [
+    'check-manifest>=0.35',
+    'coverage>=4.5.3',
+    'isort>=4.3',
+    'pydocstyle>=3.0.0',
+    'pytest-cov>=2.7.1',
+    'pytest-pep8>=1.0.6',
+    'pytest>=4.6.4,<5.0.0',
+    'marshmallow>=2.0.0,<3.0.0'
+    # 'invenio[tests]~={0}'.format(INVENIO_VERSION),
+]
 
 extras_require = {
     'docs': [
         'Sphinx>=1.5.1',
         'sphinxcontrib-httpdomain>=1.7.0'
     ],
-    'elasticsearch5': [
-        'invenio-search[elasticsearch5]>={}'.format(invenio_search_version),
+    'tests': tests_require,
+    'all-postgresql': [
+        'pyld>=1.0.4',
+        'invenio[base,auth,metadata,files,postgresql,elasticsearch6]~={0}'.format(INVENIO_VERSION),
     ],
-    'elasticsearch6': [
-        'invenio-search[elasticsearch6]>={}'.format(invenio_search_version),
-    ],
-    'mysql': [
-        'invenio-db[mysql]>={}'.format(invenio_db_version),
+    'all-mysql': [
+        'pyld>=1.0.4',
+        'invenio[base,auth,metadata,files,mysql,elasticsearch6]~={0}'.format(INVENIO_VERSION),
         'mysqlclient>=1.4'
     ],
-    'postgresql': [
-        'invenio-db[postgresql]>={}'.format(invenio_db_version),
-    ],
-    'sqlite': [
-        'invenio-db>={}'.format(invenio_db_version),
-    ],
-    'tests': tests_require,
-    'all': [
+    'all-sqlite': [
         'pyld>=1.0.4',
+        'invenio[base,auth,metadata,files,sqlite,elasticsearch6]~={0}'.format(INVENIO_VERSION),
     ]
 }
 
-for name, reqs in extras_require.items():
-    if name[0] == ':' or name in ('elasticsearch5', 'elasticsearch6', 'mysql',
-                                  'postgresql'):
+for k, v in extras_require.items():
+    if not k.startswith('all-'):
         continue
-    extras_require['all'].extend(reqs)
+    for kk, vv in extras_require.items():
+        if kk.startswith('all-'):
+            continue
+        v.extend(vv)
 
 setup_requires = [
-    'Babel>=1.3',
     'pytest-runner>=2.6.2',
 ]
 
 install_requires = [
-    'Flask-BabelEx>=0.9.3',
-    'invenio-records-rest>=1.3.1',
-    'invenio-accounts>=1.1.1',
-    'invenio-access>=1.1.0',
-    'invenio-jsonschemas>=1.0.0',
-    'arrow>=0.12.1',
-    'SQLAlchemy-Continuum>=1.3.4',
-    'attrs>=17.4.0'
 ]
 
 packages = find_packages()

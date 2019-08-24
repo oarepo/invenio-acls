@@ -29,7 +29,7 @@ set -e -o pipefail
 test -d /tmp/workdir && rm -r /tmp/workdir
 
 rsync -a --exclude __pycache__ /invenio-explicit-acls/ /tmp/workdir
-apt install rabbitmq-server
+apt install -y rabbitmq-server
 /etc/init.d/rabbitmq-server start
 
 cd /tmp/workdir
@@ -38,7 +38,13 @@ pydocstyle invenio_explicit_acls tests docs
 isort -rc -c -df
 check-manifest --ignore ".travis-*,docs/_build*"
 
-pip install -e .
+EXTRAS=all-sqlite
+
+pip install -e .[$EXTRAS]
+pip uninstall -y invenio
+pip install -e .[tests]
+
+pip uninstall -y invenio-oaiserver
 
 sphinx-build -qnNW docs docs/_build/html
 

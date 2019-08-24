@@ -44,11 +44,11 @@ RECORD_SCHEMA = 'records/record-v1.0.0.json'
         recid=dict(
             search_class='invenio_search.RecordsSearch',
             record_serializers={
-                'application/json': ('tests.records.serializers'
+                'application/json': ('records.serializers'
                                      ':json_v1_orig_response'),
             },
             search_serializers={
-                'application/json': ('tests.records.serializers'
+                'application/json': ('records.serializers'
                                      ':json_v1_orig_search'),
             },
         )
@@ -82,11 +82,11 @@ def test_get_record_without_enabled_acl(app, db, es):
             search_class='invenio_search.RecordsSearch',
             create_permission_factory_imp=allow_all,
             record_serializers={
-                'application/json': ('tests.records.serializers'
+                'application/json': ('records.serializers'
                                      ':json_v1_orig_response'),
             },
             search_serializers={
-                'application/json': ('tests.records.serializers'
+                'application/json': ('records.serializers'
                                      ':json_v1_orig_search'),
             },
         )

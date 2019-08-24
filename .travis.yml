@@ -28,9 +28,9 @@ env:
     - POSTGRESQL_SQLALCHEMY_DATABASE_URI="postgresql+psycopg2://postgres@localhost:5432/invenio"
     - MYSQL_SQLALCHEMY_DATABASE_URI="mysql://root@localhost/invenio"
   matrix:
-    - REQUIREMENTS=release EXTRAS=all,elasticsearch6,postgresql ES_URL=$ES6_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
-    - REQUIREMENTS=release EXTRAS=all,elasticsearch6,sqlite ES_URL=$ES6_DOWNLOAD_URL
-    - REQUIREMENTS=release EXTRAS=all,elasticsearch6,mysql ES_URL=$ES6_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$MYSQL_SQLALCHEMY_DATABASE_URI
+    - REQUIREMENTS=release EXTRAS=all-postgresql ES_URL=$ES6_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$POSTGRESQL_SQLALCHEMY_DATABASE_URI
+    - REQUIREMENTS=release EXTRAS=all-sqlite ES_URL=$ES6_DOWNLOAD_URL
+    - REQUIREMENTS=release EXTRAS=all-mysql ES_URL=$ES6_DOWNLOAD_URL SQLALCHEMY_DATABASE_URI=$MYSQL_SQLALCHEMY_DATABASE_URI
 
 python:
   - "3.6"
@@ -51,7 +51,9 @@ before_install:
 install:
   - "travis_retry pip install -r .travis-${REQUIREMENTS}-requirements.txt"
   - "travis_retry pip install -e .[$EXTRAS]"
-
+  - "travis_retry pip uninstall -y invenio"
+  - "travis_retry pip install -e .[tests]"
+  - "travis_retry pip uninstall -y invenio-oaiserver"   # problems with deps - marshmallow
 script:
   - "./run-tests.sh"
 

@@ -48,15 +48,15 @@ RECORDS_REST_ENDPOINTS = {
         search_index='records',
         search_type=None,
         record_serializers={
-            'application/json': ('tests.records.serializers'
+            'application/json': ('records.serializers'
                                  ':json_v1_response'),
         },
         search_serializers={
-            'application/json': ('tests.records.serializers'
+            'application/json': ('records.serializers'
                                  ':json_v1_search'),
         },
         record_loaders={
-            'application/json': ('tests.records.loaders'
+            'application/json': ('records.loaders'
                                  ':json_v1'),
         },
         list_route='/records/',

@@ -58,7 +58,7 @@ def test_cli_list(app, db, es, capsys):
     from invenio_explicit_acls.cli import list_schemas_impl
     list_schemas_impl()
     captured = capsys.readouterr()
-    assert captured.out.strip() == 'records/record-v1.0.0.json'
+    assert 'records/record-v1.0.0.json' in captured.out.strip()
     assert captured.err.strip() == ''
 
 
