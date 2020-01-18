@@ -131,6 +131,14 @@ def app(request, search_class):
     instance_path = tempfile.mkdtemp()
     app = Flask('testapp', instance_path=instance_path)
     from records import config
+
+    es_hosts = [
+        {
+            'host': 'localhost',
+            'port': int(os.environ.get('ES_PORT', 9200))
+        }
+    ]
+
     app.config.update(
         ACCOUNTS_JWT_ENABLE=False,
         INDEXER_DEFAULT_DOC_TYPE='record-v1.0.0',
@@ -141,6 +149,7 @@ def app(request, search_class):
         RECORDS_REST_DEFAULT_READ_PERMISSION_FACTORY=None,
         RECORDS_REST_DEFAULT_UPDATE_PERMISSION_FACTORY=None,
         RECORDS_REST_DEFAULT_SEARCH_INDEX=search_class.Meta.index,
+        SEARCH_ELASTIC_HOSTS=es_hosts,
         SERVER_NAME='localhost:5000',
         CELERY_ALWAYS_EAGER=True,
         CELERY_RESULT_BACKEND='cache',

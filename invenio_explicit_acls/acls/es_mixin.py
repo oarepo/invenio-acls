@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# es_mixin.py is part of Invenio Explicit ACLs 
+#
+# es_mixin.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,6 +33,7 @@ from invenio_indexer import current_record_to_index
 from invenio_records import Record
 from invenio_search import current_search, current_search_client
 
+from invenio_explicit_acls.es import add_doc_type
 from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.proxies import current_explicit_acls
 from invenio_explicit_acls.utils import schema_to_index
@@ -65,7 +66,7 @@ class ESACLMixin(object):
         try:
             for r in current_search_client.search(
                 index=clz.get_acl_index_name(index),
-                doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
+                **add_doc_type(current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']),
                 body=query
             )['hits']['hits']:
                 yield clz.query.get(r['_id'])
@@ -121,21 +122,34 @@ class ESACLMixin(object):
 
         acl_doctype_name = current_explicit_acls.acl_doctype_name
 
-        fk = next(iter(mapping['mappings'].keys()))
-        if acl_doctype_name != fk:
-            mapping['mappings'][acl_doctype_name] = mapping['mappings'][fk]
-            del mapping['mappings'][fk]
+        if 'properties' not in mapping['mappings']:
+            # ES6-style mapping file
+            fk = next(iter(mapping['mappings'].keys()))
+            if acl_doctype_name != fk:
+                mapping['mappings'][acl_doctype_name] = mapping['mappings'][fk]
+                del mapping['mappings'][fk]
 
-        mapping['mappings'][acl_doctype_name]['properties'] = {
-            **mapping['mappings'][acl_doctype_name]['properties'],
-            "__acl_record_selector": {
-                "type": "percolator"
-            },
-            "__acl_record_type": {
-                "type": "keyword"
+
+            mapping['mappings'][acl_doctype_name]['properties'] = {
+                **mapping['mappings'][acl_doctype_name]['properties'],
+                "__acl_record_selector": {
+                    "type": "percolator"
+                },
+                "__acl_record_type": {
+                    "type": "keyword"
+                }
             }
-        }
-
+        else:
+            # ES7 mapping file
+            mapping['mappings']['properties'] = {
+                **mapping['mappings']['properties'],
+                "__acl_record_selector": {
+                    "type": "percolator"
+                },
+                "__acl_record_type": {
+                    "type": "keyword"
+                }
+            }
         try:
             current_search_client.indices.create(index=acl_index_name, body=mapping)
         except Exception as e:
@@ -157,7 +171,7 @@ class ESACLMixin(object):
                         "query": self.record_selector,
                         "_source": False,
                     },
-                    index=index_name, doc_type=doc_type
+                    index=index_name, **add_doc_type(doc_type)
                 ):
                     yield doc['_id']
             except:  # pragma: no cover
@@ -177,7 +191,7 @@ class ESACLMixin(object):
             try:
                 resp = current_search_client.index(
                     index=acl_idx_name,
-                    doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
+                    **add_doc_type(current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']),
                     id=self.id,
                     body=body
                 )
@@ -192,7 +206,7 @@ class ESACLMixin(object):
             try:
                 return current_search_client.delete(
                     index=acl_index_name,
-                    doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
+                    **add_doc_type(current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']),
                     id=self.id
                 )
             except:  # pragma: no cover

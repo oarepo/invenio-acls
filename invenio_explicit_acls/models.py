@@ -42,6 +42,7 @@ from sqlalchemy.util import classproperty
 from sqlalchemy_utils import Timestamp
 
 from invenio_explicit_acls.utils import schema_to_index
+from .es import add_doc_type
 
 try:
     from psycopg2 import apilevel
@@ -238,7 +239,7 @@ class ACL(db.Model, Timestamp):
                     "_source": False,
                 },
                 index=index,
-                doc_type=doc_type
+                **add_doc_type(doc_type)
             ):
                 yield doc['_id']
 

@@ -41,7 +41,7 @@ from werkzeug.utils import cached_property, import_string
 from invenio_explicit_acls.tasks import acl_changed_reindex, \
     acl_deleted_reindex
 from invenio_explicit_acls.utils import schema_to_index
-
+from .es import add_doc_type
 from .models import ACL, Actor
 
 logger = logging.getLogger(__name__)
@@ -103,8 +103,7 @@ class AclAPI:
         # add an extra column containing preprocessed ACLs to the prepared schema
         index_name, doc_type = schema_to_index(schema)
 
-        # print(json.dumps(self._extra_mapping, indent=4))
-        current_search_client.indices.put_mapping(index=index_name, doc_type=doc_type, body=self._extra_mapping)
+        current_search_client.indices.put_mapping(index=index_name, **add_doc_type(doc_type), body=self._extra_mapping)
 
     @cached_property
     def _extra_mapping(self):
