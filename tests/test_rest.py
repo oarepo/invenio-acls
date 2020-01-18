@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# test_rest.py is part of Invenio Explicit ACLs 
+#
+# test_rest.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -151,7 +151,7 @@ def test_create_acl_after_record(app, db, es, es_acl_prepare, test_users):
             record_class=SchemaEnforcingRecord
         )
     ),
-)], indirect=['app'])
+)], indirect=['app'], scope="function")
 def test_rest_get_record(app, db, es, es_acl_prepare, test_users):
     with app.test_client() as client:
         with db.session.begin_nested():
@@ -181,7 +181,7 @@ def test_rest_get_record(app, db, es, es_acl_prepare, test_users):
             update_permission_factory_imp=acl_update_permission_factory,
         )
     ),
-)], indirect=['app'])
+)], indirect=['app'], scope="function")
 def test_rest_update_record(app, db, es, es_acl_prepare, test_users):
     with app.test_client() as client:
         with db.session.begin_nested():
@@ -246,7 +246,7 @@ def test_rest_update_record(app, db, es, es_acl_prepare, test_users):
             delete_permission_factory_imp=acl_update_permission_factory,
         )
     ),
-)], indirect=['app'])
+)], indirect=['app'], scope="function")
 def test_rest_delete_record(app, db, es, es_acl_prepare, test_users):
     with app.test_client() as client:
         with db.session.begin_nested():

@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# tasks.py is part of Invenio Explicit ACLs 
+#
+# tasks.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,7 +49,7 @@ def acl_changed_reindex(acl_id):
     """
     logger.info('Reindexing started for ACL=%s', acl_id)
 
-    timestamp = datetime.datetime.now().astimezone().isoformat()
+    timestamp = datetime.datetime.now(datetime.timezone.utc)
 
     acl = ACL.query.filter_by(id=acl_id).one_or_none()
 

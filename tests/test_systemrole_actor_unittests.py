@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# test_systemrole_actor_unittests.py is part of Invenio Explicit ACLs 
+#
+# test_systemrole_actor_unittests.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -65,7 +65,7 @@ def test_get_elasticsearch_query(app, db, es, test_users):
                SystemRoleActor.get_elasticsearch_query(test_users.u1, {})
 
         # faked user - different identity in flask.g than user
-        with pytest.raises(AttributeError, message='user whose id does not match Identity in flask.g'):
+        with pytest.raises(AttributeError, match='user whose id does not match Identity in flask.g'):
             SystemRoleActor.get_elasticsearch_query(test_users.u2, {})
 
         set_identity(test_users.u2)

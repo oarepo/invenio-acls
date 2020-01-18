@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# conftest.py is part of Invenio Explicit ACLs 
+#
+# conftest.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -99,10 +99,10 @@ def user_id_1_perm(record, *args, **kwargs):
     return type('User1Perm', (), {'can': can})()
 
 
-@pytest.yield_fixture()
+@pytest.yield_fixture(scope="function")
 def app(request, search_class):
     """Flask application fixture.
-    
+
     Note that RECORDS_REST_ENDPOINTS is used during application creation to
     create blueprints on the fly, hence once you have this fixture in a test,
     it's too late to customize the configuration variable. You can however
@@ -276,7 +276,7 @@ def es_acl_prepare(app, es, db):
     yield current_explicit_acls
 
 
-TestUsers = namedtuple('TestUsers', ['u1', 'u2', 'u3', 'r1', 'r2'], verbose=False)
+TestUsers = namedtuple('TestUsers', ['u1', 'u2', 'u3', 'r1', 'r2'])
 
 
 @pytest.fixture()

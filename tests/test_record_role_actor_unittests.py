@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# test_role_actor_unittests.py is part of Invenio Explicit ACLs 
+#
+# test_role_actor_unittests.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -47,7 +47,7 @@ def test_get_elasticsearch_representation(app, db, es, test_users):
         actor = RecordRoleActor(name='test', originator=test_users.u1, path='/roles')
         db.session.add(actor)
 
-    with pytest.raises(Exception, message='This Actor works on record, so pass one!'):
+    with pytest.raises(Exception, match='This Actor works on record, so pass one!'):
         actor.get_elasticsearch_representation()
 
     assert [test_users.r1.id] == actor.get_elasticsearch_representation(record={

@@ -1,0 +1,18 @@
+{
+    "properties": {
+        "_invenio_explicit_acls": {
+            "type": "nested",
+            "properties": {
+                "operation": {
+                    "type": "keyword"
+                },
+                "id": {
+                    "type": "keyword"
+                },
+                "timestamp": {
+                    "type": "date"
+                }
+            }
+        }
+    }
+}

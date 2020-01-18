@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# setup.py is part of Invenio Explicit ACLs 
+#
+# setup.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,19 +30,9 @@ import os
 from setuptools import find_packages, setup
 
 readme = open('README.rst').read()
-
-INVENIO_VERSION = '3.1.1'
+OAREPO_VERSION = os.environ.get('OAREPO_VERSION', '3.1.1')
 
 tests_require = [
-    'check-manifest>=0.35',
-    'coverage>=4.5.3',
-    'isort>=4.3',
-    'pydocstyle>=3.0.0',
-    'pytest-cov>=2.7.1',
-    'pytest-pep8>=1.0.6',
-    'pytest>=4.6.4,<5.0.0',
-    'marshmallow>=2.0.0,<3.0.0'
-    # 'invenio[tests]~={0}'.format(INVENIO_VERSION),
 ]
 
 extras_require = {
@@ -50,35 +40,22 @@ extras_require = {
         'Sphinx>=1.5.1',
         'sphinxcontrib-httpdomain>=1.7.0'
     ],
-    'tests': tests_require,
-    'all-postgresql': [
-        'pyld>=1.0.4',
-        'invenio[base,auth,metadata,files,postgresql,elasticsearch6]~={0}'.format(INVENIO_VERSION),
-    ],
-    'all-mysql': [
-        'pyld>=1.0.4',
-        'invenio[base,auth,metadata,files,mysql,elasticsearch6]~={0}'.format(INVENIO_VERSION),
-        'mysqlclient>=1.4'
-    ],
-    'all-sqlite': [
-        'pyld>=1.0.4',
-        'invenio[base,auth,metadata,files,sqlite,elasticsearch6]~={0}'.format(INVENIO_VERSION),
-    ]
+    'tests': [
+        *tests_require,
+        'oarepo[tests]~={version}'.format(
+            version=OAREPO_VERSION)],
+    'tests-es7': [
+        *tests_require,
+        'oarepo[tests-es7]~={version}'.format(
+            version=OAREPO_VERSION)],
 }
-
-for k, v in extras_require.items():
-    if not k.startswith('all-'):
-        continue
-    for kk, vv in extras_require.items():
-        if kk.startswith('all-'):
-            continue
-        v.extend(vv)
 
 setup_requires = [
     'pytest-runner>=2.6.2',
 ]
 
 install_requires = [
+    "invenio-oarepo-invenio-model>=1.2"
 ]
 
 packages = find_packages()

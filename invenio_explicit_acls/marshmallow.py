@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# marshmallow.py is part of Invenio Explicit ACLs 
+#
+# marshmallow.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,13 +23,14 @@
 # SOFTWARE.
 #
 """Marshmallow mixin that returns cached ACLs on Record."""
+from invenio_oarepo_invenio_model.marshmallow import InvenioRecordMetadataSchemaV1Mixin
 from marshmallow import ValidationError, fields, post_load, validates
 
 from invenio_explicit_acls.utils import AllowedSchemaMixin, \
     convert_relative_schema_to_absolute
 
 
-class SchemaEnforcingMixin(AllowedSchemaMixin):
+class SchemaEnforcingMixin(AllowedSchemaMixin, InvenioRecordMetadataSchemaV1Mixin):
     """A marshmallow mixin that enforces that record has only one of predefined schemas."""
 
     ALLOWED_SCHEMAS = ('records/record-v1.0.0.json',)
@@ -37,8 +38,6 @@ class SchemaEnforcingMixin(AllowedSchemaMixin):
 
     PREFERRED_SCHEMA = 'records/record-v1.0.0.json'
     """If a schema is not set, add this schema."""
-
-    schema = fields.String(attribute='$schema', load_from='$schema', dump_to='$schema', required=False)
 
     @validates('schema')
     def validate_schema(self, value):
@@ -50,7 +49,7 @@ class SchemaEnforcingMixin(AllowedSchemaMixin):
                 raise ValidationError('Schema %s not in allowed schemas %s' % (value, self.ALLOWED_SCHEMAS))
 
     @post_load
-    def add_schema(self, data):
+    def add_schema(self, data, **kwargs):
         """If schema has not been provided, sets the PREFERRED_SCHEMA."""
         self._prepare_schemas()
         if '$schema' not in data:

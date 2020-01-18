@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# models.py is part of Invenio Explicit ACLs 
+#
+# models.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +23,7 @@
 # SOFTWARE.
 #
 """A module implementing base ACL classes."""
+import datetime
 import json
 import os
 import uuid
@@ -96,7 +97,7 @@ class ACL(db.Model, Timestamp):
     priority = db.Column(
         db.Integer,
         default=0)
-    """Priority of the acl rule. Only the applicable rules with the highest priority 
+    """Priority of the acl rule. Only the applicable rules with the highest priority
     within a group get applied to the resource"""
 
     priority_group = db.Column(
@@ -107,8 +108,8 @@ class ACL(db.Model, Timestamp):
 
     schemas = db.Column(StringArray)
     """
-    Set of record schemas that this ACL handles. 
-    
+    Set of record schemas that this ACL handles.
+
     Note that the schemas must be relative, for example records/record-v1.0.0.json.
     """
 
@@ -207,6 +208,8 @@ class ACL(db.Model, Timestamp):
             ]
 
             if older_than_timestamp:
+                if isinstance(older_than_timestamp, datetime.datetime):
+                    older_than_timestamp = older_than_timestamp.isoformat()
                 query.append(
                     {
                         "range": {
@@ -228,7 +231,6 @@ class ACL(db.Model, Timestamp):
                     }
                 }
             }
-
             for doc in elasticsearch.helpers.scan(
                 current_search_client,
                 query={
