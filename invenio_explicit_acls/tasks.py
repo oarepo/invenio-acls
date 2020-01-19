@@ -28,6 +28,7 @@ import logging
 
 import elasticsearch
 from celery import shared_task
+from invenio_indexer import current_record_to_index
 from invenio_indexer.api import RecordIndexer
 from invenio_records import Record
 from invenio_search import current_search_client
@@ -59,15 +60,18 @@ def acl_changed_reindex(acl_id):
 
     # make sure all indices are flushed so that no resource is obsolete in index
     for schema in acl.schemas:
+        current_search_client.indices.refresh(index=schema_to_index(schema)[0])
         current_search_client.indices.flush(index=schema_to_index(schema)[0])
 
     indexer = RecordIndexer()
     updated_count = 0
     removed_count = 0
 
+    indices_to_refresh = set()
     for id in acl.get_matching_resources():
         try:
             rec = Record.get_record(id)
+            indices_to_refresh.add(current_record_to_index(rec)[0])
         except:     # pragma no cover
             # record removed in the meanwhile by another thread/process,
             # indexer should have been called to remove it from ES
@@ -79,10 +83,17 @@ def acl_changed_reindex(acl_id):
         except Exception as e:  # pragma no cover
             logger.exception('Error indexing ACL for resource %s: %s', id, e)
 
+    # refresh the indices
+    for index in indices_to_refresh:
+        current_search_client.indices.refresh(index=index)
+        current_search_client.indices.flush(index=index)
+
+    indices_to_refresh = set()
     # reindex the resources those were indexed by this acl but no longer should be
     for id in acl.used_in_records(older_than_timestamp=timestamp):
         try:
             rec = Record.get_record(id)
+            indices_to_refresh.add(current_record_to_index(rec)[0])
         except NoResultFound:                           # pragma no cover
             continue
         except:                                         # pragma no cover
@@ -94,6 +105,11 @@ def acl_changed_reindex(acl_id):
             indexer.index(rec)
         except:     # pragma no cover
             logger.exception('Error indexing ACL for obsolete resource %s', id)
+
+    # refresh the indices
+    for index in indices_to_refresh:
+        current_search_client.indices.refresh(index=index)
+        current_search_client.indices.flush(index=index)
 
     logger.info('Reindexing finished for ACL=%s, acl applied to %s records, acl removed from %s records',
                 acl_id, updated_count, removed_count)

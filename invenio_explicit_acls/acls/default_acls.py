@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# default_acls.py is part of Invenio Explicit ACLs 
+#
+# default_acls.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,6 +30,7 @@ from invenio_records import Record
 from invenio_search import current_search_client
 from sqlalchemy import func
 
+from invenio_explicit_acls.es import add_doc_type
 from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.utils import get_record_acl_enabled_schema, \
     schema_to_index
@@ -90,7 +91,7 @@ class DefaultACL(ACL):
 
             for r in current_search_client.search(
                 index=index,
-                doc_type=doc_type,
+                **add_doc_type(doc_type),
                 body={
                     "query": {
                         "match_all": {}

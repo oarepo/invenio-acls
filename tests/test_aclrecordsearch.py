@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# test_aclrecordsearch.py is part of Invenio Explicit ACLs 
+#
+# test_aclrecordsearch.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -70,6 +70,7 @@ def test_aclrecordsearch_returnall(app, db, es, es_acl_prepare, test_users):
         assert 'control_number' in rest_metadata
 
     # make sure indices are flushed
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     index, doc_type = schema_to_index(RECORD_SCHEMA)
@@ -104,6 +105,7 @@ def test_aclrecordsearch_returnall(app, db, es, es_acl_prepare, test_users):
     current_explicit_acls.reindex_acl(acl2, delayed=False)
 
     # make sure indices are flushed
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     # for the same user acl_return_all() must return the record and effective acls
@@ -159,6 +161,7 @@ def test_aclrecordsearch_explicit_user(app, db, es, es_acl_prepare, test_users):
     rec = SchemaEnforcingRecord.create(data, id_=record_uuid)
     RecordIndexer().index(rec)
 
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     rs = ACLRecordsSearch(user=test_users.u1, context={

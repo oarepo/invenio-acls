@@ -59,6 +59,7 @@ def test_get_record_without_enabled_acl(app, db, es):
     RecordIndexer().index(record)
 
     # make sure it is flushed
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     # try to get it ...
@@ -116,6 +117,7 @@ def test_get_record_no_acls_anonymous(app, db, es, es_acl_prepare, test_users):
     RecordIndexer().index(record)
 
     # make sure it is flushed
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     # try to get it ...
@@ -135,6 +137,7 @@ def test_get_record_no_acls_authenticated(app, db, es, es_acl_prepare, test_user
     RecordIndexer().index(record)
 
     # make sure it is flushed
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     # try to get it ...

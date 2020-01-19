@@ -67,12 +67,14 @@ def test_used_in_records(app, db, es, es_acl_prepare, test_users):
     ts1 = datetime.datetime.now(datetime.timezone.utc)
     time.sleep(0.1)
     RecordIndexer().index(record1)
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     time.sleep(1)
     ts2 = datetime.datetime.now(datetime.timezone.utc)
     time.sleep(0.1)
     RecordIndexer().index(record2)
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     time.sleep(1)

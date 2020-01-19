@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# test_elasticsearch_acl_unittests.py is part of Invenio Explicit ACLs 
+#
+# test_elasticsearch_acl_unittests.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,11 +26,12 @@ import json
 
 import elasticsearch
 import pytest
+from elasticsearch import VERSION as ES_VERSION
 from flask import current_app
-from helpers import create_record
 from invenio_indexer.api import RecordIndexer
 from invenio_search import current_search_client
 
+from helpers import create_record
 from invenio_explicit_acls.acls import ElasticsearchACL
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.utils import schema_to_index
@@ -82,7 +83,10 @@ def test_elasticsearch_acl_prepare_schema_acl(app, db, es, es_acl_prepare, test_
     mapping = current_search_client.indices.get_mapping(idx)
     assert len(mapping) == 1
     key = list(mapping.keys())[0]
-    assert '_invenio_explicit_acls' in mapping[key]['mappings'][doc_type]['properties']
+    if ES_VERSION[0] < 7:
+        assert '_invenio_explicit_acls' in mapping[key]['mappings'][doc_type]['properties']
+    else:
+        assert '_invenio_explicit_acls' in mapping[key]['mappings']['properties']
 
 
 def test_elasticsearch_acl_get_matching_resources(app, db, es, es_acl_prepare, test_users):
@@ -90,6 +94,7 @@ def test_elasticsearch_acl_get_matching_resources(app, db, es, es_acl_prepare, t
     pid1, record1 = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['test']}, clz=SchemaEnforcingRecord)
     RecordIndexer().index(record)
     RecordIndexer().index(record1)
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     with db.session.begin_nested():
@@ -133,6 +138,11 @@ def test_elasticsearch_acl_update(app, db, es, es_acl_prepare, test_users):
         doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
         id=acl.id
     )
+    # ES7 returns extra:
+    acl_md.pop('_seq_no', None)
+    acl_md.pop('_primary_term', None)
+
+    print(json.dumps(acl_md, indent=4))
     assert acl_md == {
         '_id': acl.id,
         '_index': 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0',
@@ -159,6 +169,10 @@ def test_elasticsearch_acl_delete(app, db, es, es_acl_prepare, test_users):
         doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
         id=acl.id
     )
+    # ES7 returns extra:
+    acl_md.pop('_seq_no', None)
+    acl_md.pop('_primary_term', None)
+
     assert acl_md == {
         '_id': acl.id,
         '_index': 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0',

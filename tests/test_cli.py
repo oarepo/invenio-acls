@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# test_cli.py is part of Invenio Explicit ACLs 
+#
+# test_cli.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,10 +27,11 @@ import os
 import tempfile
 
 import pytest
-from helpers import clear_timestamp, create_record
+from elasticsearch import VERSION as ES_VERSION
 from invenio_indexer.api import RecordIndexer
 from invenio_search import RecordsSearch, current_search_client
 
+from helpers import clear_timestamp, create_record
 from invenio_explicit_acls.acls import ElasticsearchACL
 from invenio_explicit_acls.actors import UserActor
 from invenio_explicit_acls.proxies import current_explicit_acls
@@ -50,7 +51,10 @@ def test_prepare(app, db, es, es_acl_prepare):
     mapping = current_search_client.indices.get_mapping('records-record-v1.0.0')
     assert len(mapping) == 1
     key = list(mapping.keys())[0]
-    mapping = mapping[key]['mappings']['record-v1.0.0']['properties']
+    if ES_VERSION[0] < 7:
+        mapping = mapping[key]['mappings']['record-v1.0.0']['properties']
+    else:
+        mapping = mapping[key]['mappings']['properties']
     assert '_invenio_explicit_acls' in mapping
 
 
@@ -79,6 +83,7 @@ def test_cli_prepare(app, db, es, capsys):
 def test_cli_full_reindex(app, db, es, capsys, es_acl_prepare, test_users):
     pid, record = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['blah']}, clz=SchemaEnforcingRecord)
     RecordIndexer().index(record)
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
     with db.session.begin_nested():
         acl = ElasticsearchACL(name='test', schemas=[RECORD_SCHEMA],
@@ -109,6 +114,7 @@ Getting records for schema records/record-v1.0.0.json
    ... collected 1 records
 Adding 1 records to indexing queue""".strip() % (acl.id)
 
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     retrieved = RecordsSearch(index=schema_to_index(RECORD_SCHEMA)[0]).get_record(record.id).execute().hits[0].to_dict()
@@ -213,6 +219,7 @@ The record is not matched by any ACLs
         db.session.add(u)
     acl.update()
 
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     check_explain(capsys, {}, """Please add $schema to record metadata""")
@@ -400,7 +407,6 @@ The ACLs will get serialized to the following element
 }
 """.strip() % {'acl_id': str(acl.id)})
 
-
     check_explain(capsys, {'$schema': RECORD_SCHEMA, 'keywords': ['aaa']}, """
 Possible ACLs
 ElasticsearchACL "test" (%(acl_id)s) on schemas ['records/record-v1.0.0.json']
@@ -470,5 +476,6 @@ The record is not matched by any ACLs
 
 """ % {'acl_id': str(acl.id)})
 
-    with pytest.raises(RuntimeError, match='Explicit ACLs were not prepared for the given schema. Please run invenio explicit-acls prepare http://bla'):
+    with pytest.raises(RuntimeError,
+                       match='Explicit ACLs were not prepared for the given schema. Please run invenio explicit-acls prepare http://bla'):
         check_explain(capsys, {'$schema': 'http://blah', 'keywords': ['aaa']}, """""")

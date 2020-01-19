@@ -193,7 +193,8 @@ class ESACLMixin(object):
                     index=acl_idx_name,
                     **add_doc_type(current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']),
                     id=self.id,
-                    body=body
+                    body=body,
+                    refresh='wait_for'
                 )
                 assert resp['result'] in ('created', 'updated')
             finally:
@@ -207,7 +208,8 @@ class ESACLMixin(object):
                 return current_search_client.delete(
                     index=acl_index_name,
                     **add_doc_type(current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME']),
-                    id=self.id
+                    id=self.id,
+                    refresh='wait_for'
                 )
             except:  # pragma: no cover
                 logger.exception('Strange, the ACL has not been indexed: %s', repr(self))

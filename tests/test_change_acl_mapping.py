@@ -1,19 +1,19 @@
 #
 # Copyright (c) 2019 UCT Prague.
-# 
-# test_change_acl_mapping.py is part of Invenio Explicit ACLs 
+#
+# test_change_acl_mapping.py is part of Invenio Explicit ACLs
 # (see https://github.com/oarepo/invenio-explicit-acls).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,6 +32,7 @@ from invenio_search import current_search_client
 
 from invenio_explicit_acls.acls import DefaultACL, ElasticsearchACL
 from invenio_explicit_acls.actors import SystemRoleActor, UserActor
+from invenio_explicit_acls.es import add_doc_type
 from invenio_explicit_acls.proxies import current_explicit_acls
 from invenio_explicit_acls.record import SchemaEnforcingRecord
 from invenio_explicit_acls.utils import schema_to_index
@@ -44,6 +45,7 @@ def test_change_acl_mapping(app, db, es, es_acl_prepare, test_users):
     pid1, record1 = create_record({'$schema': RECORD_SCHEMA, 'keywords': ['test']}, clz=SchemaEnforcingRecord)
     RecordIndexer().index(record)
     RecordIndexer().index(record1)
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     with db.session.begin_nested():
@@ -57,13 +59,14 @@ def test_change_acl_mapping(app, db, es, es_acl_prepare, test_users):
         db.session.add(actor)
 
     current_explicit_acls.reindex_acl(acl, delayed=False)
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     index, doc_type = schema_to_index(RECORD_SCHEMA)
 
     hits = current_search_client.search(
         index=index,
-        doc_type=doc_type,
+        **add_doc_type(doc_type),
         body={
             'query': {
                 'nested': {
@@ -91,6 +94,7 @@ def test_change_acl_mapping(app, db, es, es_acl_prepare, test_users):
         db.session.add(acl)
 
     current_explicit_acls.reindex_acl(acl, delayed=False)
+    current_search_client.indices.refresh()
     current_search_client.indices.flush()
 
     hits = current_search_client.search(

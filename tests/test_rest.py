@@ -132,6 +132,7 @@ def test_create_acl_after_record(app, db, es, es_acl_prepare, test_users):
         current_explicit_acls.reindex_acl_removed(acl1, delayed=False)
 
         # make sure all changes had time to propagate and test
+        current_search_client.indices.refresh()
         current_search_client.indices.flush()
 
         rec_md = current_search_client.get(
@@ -164,6 +165,7 @@ def test_rest_get_record(app, db, es, es_acl_prepare, test_users):
 
         pid, record = create_record({'keywords': ['blah']}, clz=SchemaEnforcingRecord)
         RecordIndexer().index(record)
+        current_search_client.indices.refresh()
         current_search_client.indices.flush()
 
         login(client, test_users.u1)
@@ -194,6 +196,7 @@ def test_rest_update_record(app, db, es, es_acl_prepare, test_users):
 
         pid, record = create_record({'keywords': ['blah']}, clz=SchemaEnforcingRecord)
         RecordIndexer().index(record)
+        current_search_client.indices.refresh()
         current_search_client.indices.flush()
 
         login(client, test_users.u1)
@@ -259,6 +262,7 @@ def test_rest_delete_record(app, db, es, es_acl_prepare, test_users):
 
         pid, record = create_record({'keywords': ['blah']}, clz=SchemaEnforcingRecord)
         RecordIndexer().index(record)
+        current_search_client.indices.refresh()
         current_search_client.indices.flush()
 
 
