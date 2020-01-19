@@ -99,7 +99,7 @@ def test_change_acl_mapping(app, db, es, es_acl_prepare, test_users):
 
     hits = current_search_client.search(
         index=index,
-        doc_type=doc_type,
+        **add_doc_type(doc_type),
         body={
             'query': {
                 'nested': {

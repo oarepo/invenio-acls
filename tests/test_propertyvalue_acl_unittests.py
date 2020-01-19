@@ -24,11 +24,12 @@
 #
 import elasticsearch
 import pytest
+from elasticsearch import VERSION as ES_VERSION
 from flask import current_app
-from helpers import create_record
 from invenio_indexer.api import RecordIndexer
 from invenio_search import current_search_client
 
+from helpers import create_record
 from invenio_explicit_acls.acls import PropertyValueACL
 from invenio_explicit_acls.acls.propertyvalue_acls import BoolOperation, \
     MatchOperation, PropertyValue
@@ -118,7 +119,10 @@ def test_propertyvalue_acl_prepare_schema_acl(app, db, es, es_acl_prepare, test_
     mapping = current_search_client.indices.get_mapping(idx)
     assert len(mapping) == 1
     key = list(mapping.keys())[0]
-    assert '_invenio_explicit_acls' in mapping[key]['mappings'][doc_type]['properties']
+    if ES_VERSION[0] < 7:
+        assert '_invenio_explicit_acls' in mapping[key]['mappings'][doc_type]['properties']
+    else:
+        assert '_invenio_explicit_acls' in mapping[key]['mappings']['properties']
 
 
 def test_propertyvalue_acl_get_matching_resources(app, db, es, es_acl_prepare, test_users):
@@ -219,6 +223,9 @@ def test_propertyvalue_acl_update(app, db, es, es_acl_prepare, test_users):
         doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
         id=acl.id
     )
+    # ES7 returns extra:
+    acl_md.pop('_seq_no', None)
+    acl_md.pop('_primary_term', None)
     assert acl_md == {
         '_id': acl.id,
         '_index': 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0',
@@ -247,6 +254,9 @@ def test_propertyvalue_acl_delete(app, db, es, es_acl_prepare, test_users):
         doc_type=current_app.config['INVENIO_EXPLICIT_ACLS_DOCTYPE_NAME'],
         id=acl.id
     )
+    # ES7 returns extra:
+    acl_md.pop('_seq_no', None)
+    acl_md.pop('_primary_term', None)
     assert acl_md == {
         '_id': acl.id,
         '_index': 'invenio_explicit_acls-acl-v1.0.0-records-record-v1.0.0',

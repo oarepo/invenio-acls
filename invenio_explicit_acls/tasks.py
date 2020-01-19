@@ -34,6 +34,7 @@ from invenio_records import Record
 from invenio_search import current_search_client
 from sqlalchemy.orm.exc import NoResultFound
 
+from invenio_explicit_acls.es import add_doc_type
 from invenio_explicit_acls.models import ACL
 from invenio_explicit_acls.proxies import current_explicit_acls
 from invenio_explicit_acls.utils import schema_to_index
@@ -145,6 +146,7 @@ def acl_deleted_reindex(schemas, acl_id):
     }
     removed_count = 0
     for schema in schemas:
+        current_search_client.indices.refresh(index=schema_to_index(schema)[0])
         current_search_client.indices.flush(index=schema_to_index(schema)[0])
         try:
             index, doc_type = schema_to_index(schema)
@@ -156,7 +158,7 @@ def acl_deleted_reindex(schemas, acl_id):
                     "_source": False,
                 },
                 index=index,
-                doc_type=doc_type
+                **add_doc_type(doc_type)
             ):
                 try:
                     indexer.index(Record.get_record(doc['_id']))

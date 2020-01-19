@@ -96,6 +96,9 @@ def test_create_acl_after_record(app, db, es, es_acl_prepare, test_users):
         rest_metadata = get_json(response)['metadata']
         assert 'control_number' in rest_metadata
 
+        current_search_client.indices.refresh()
+        current_search_client.indices.flush()
+
         with db.session.begin_nested():
             acl1 = DefaultACL(name='default', schemas=[RECORD_SCHEMA], priority=0, originator=test_users.u1, operation='get')
             actor1 = SystemRoleActor(name='auth', system_role='any_user', acl=acl1, originator=test_users.u1)
@@ -142,6 +145,7 @@ def test_create_acl_after_record(app, db, es, es_acl_prepare, test_users):
         )
 
         # there is no ACL in the database => no acls are defined nor enforced on the record
+        print(json.dumps(rec_md, indent=4))
         assert '_invenio_explicit_acls' not in rec_md['_source']
 
 

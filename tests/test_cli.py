@@ -76,7 +76,10 @@ def test_cli_prepare(app, db, es, capsys):
     mapping = current_search_client.indices.get_mapping('records-record-v1.0.0')
     assert len(mapping) == 1
     key = list(mapping.keys())[0]
-    mapping = mapping[key]['mappings']['record-v1.0.0']['properties']
+    if ES_VERSION[0]<7:
+        mapping = mapping[key]['mappings']['record-v1.0.0']['properties']
+    else:
+        mapping = mapping[key]['mappings']['properties']
     assert '_invenio_explicit_acls' in mapping
 
 
